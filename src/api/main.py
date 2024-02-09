@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 
 api = FastAPI(
@@ -26,3 +26,19 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 @api.get("/secure-data/")
 async def get_secure_data(user: str = Depends(verify_admin)):
     return {"message": f"Hello {user}, you have access to secure data"}
+
+    
+class CreateMovie(BaseModel):
+    title: str
+    genres : Optional[list] = None
+
+
+@api.post("/create-movie/")
+def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
+    new_movie = movie_data.dict()
+    # à discuter
+    '''with open("data/movies.csv", mode='a', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=new_movie.keys())
+        csv_writer.writerow(new_movie)'''
+
+    return {"message": "movie created successfully", "movie": new_movie}
