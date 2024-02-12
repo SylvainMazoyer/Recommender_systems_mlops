@@ -10,6 +10,9 @@ api = FastAPI(
 
 security = HTTPBasic()
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
 
 @api.get("/test")
 def read_root():
