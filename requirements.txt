@@ -1,1 +1,9 @@
-
+pandas
+sklearn
+ipykernel
+Pyarrow
+pydantic
+typing
+fastapi
+httpx
+pytest
