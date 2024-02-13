@@ -57,13 +57,13 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     
 class CreateMovie(BaseModel):
     title: str
-    genres : str = None
+    genres : Optional[str] = None
 
-def get_next_id(file_path):
+def get_next_id(file_path, columnid):
     with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         # Determine the maximum movieid
-        max_movieid = max(int(row["movieId"]) for row in csv_reader)
+        max_movieid = max(int(row[columnid]) for row in csv_reader)
     # Return the next available movieid
     return max_movieid + 1
 
@@ -71,7 +71,7 @@ def get_next_id(file_path):
 def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
     file_path = "../../data/movies.csv"
     new_movie = movie_data.dict()
-    new_movie["movieId"] = get_next_id(file_path)
+    new_movie["movieId"] = get_next_id(file_path, 'movieId')
 
     # à discuter
     with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
@@ -82,4 +82,25 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
                             )
 
     return {"message": "movie created successfully", "movie": new_movie}
+
+class CreateUser(BaseModel):
+    name: str
+    password:Optional[str] = None
+    role:str
+    
+@api.post("/create-user/")
+def create_user(user_data: CreateUser, user: str = Depends(verify_admin)):
+    file_path = "../../data/users.csv"
+    new_user = user_data.dict()
+    new_user["userId"] = get_next_id(file_path, 'userId')
+
+    # à discuter
+    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=new_user.keys())
+        csv_writer.writerow({'userId': new_user["userId"] , 
+                             'name': new_user["name"]}
+                            )
+
+    return {"message": "user created successfully", "user": new_user}
+
 
