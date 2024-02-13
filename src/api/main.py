@@ -2,6 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List, Optional
 from pydantic import BaseModel
+from passlib.context import CryptContext
+import json
+
 
 api = FastAPI(
     title="Movie recomandation API",
@@ -10,19 +13,42 @@ api = FastAPI(
 
 security = HTTPBasic()
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_admins_from_file(file_path):
+    with open(file_path, "r") as file:
+        admins = json.load(file)
+    return admins
 
 @api.get("/test")
 def read_root():
     return {"message": "API is functional"}
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
-    user = credentials.username
+    admins = get_admins_from_file("admins.json")
+    username = credentials.username
     password = credentials.password
-    if user != "admin" and password != "4dm1N" :        
-        raise HTTPException(status_code=401, 
-                            detail=f"not admin credentials {user}: {password}")
-    return user
+    if not(admins.get(username)) or not(pwd_context.verify(password, admins[username]['hashed_password'])):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return username
 
 @api.get("/secure-data/")
-async def get_secure_data(user: str = Depends(verify_admin)):
-    return {"message": f"Hello {user}, you have access to secure data"}
+async def get_secure_data(username: str = Depends(verify_admin)):
+    """
+    Description:
+    Cette route renvoie un message de bienvenue personnalisé en utilisant le nom d'utilisateur fourni en tant que dépendance.
+
+    Args:
+    - username (str, dépendance): Le nom d'utilisateur récupéré à partir de la dépendance `get_secure_data`.
+
+    Returns:
+    - str: Un message de bienvenue personnalisé avec le nom d'utilisateur.
+
+    Raises:
+    Aucune exception n'est levée explicitement, sauf si la dépendance `get_secure_data` échoue pour récupérer le nom d'utilisateur. Dans ce cas, une exception FastAPI sera levée automatiquement.
+    """
+    return {"message": f"Hello {username}, you have access to secure data"}
