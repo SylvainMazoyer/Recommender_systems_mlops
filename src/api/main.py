@@ -4,7 +4,8 @@ from typing import Optional
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import json
-
+import csv
+from pathlib import Path
 
 api = FastAPI(
     title="Movie recomandation API",
@@ -13,6 +14,12 @@ api = FastAPI(
 
 security = HTTPBasic()
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_admins_from_file(file_path):
+    with open(file_path, "r") as file:
+        admins = json.load(file)
+    return admins
 
 @api.get("/test")
 def read_root():
@@ -50,15 +57,29 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     
 class CreateMovie(BaseModel):
     title: str
-    genres : Optional[list] = None
+    genres : str = None
 
+def get_next_id(file_path):
+    with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        # Determine the maximum movieid
+        max_movieid = max(int(row["movieId"]) for row in csv_reader)
+    # Return the next available movieid
+    return max_movieid + 1
 
 @api.post("/create-movie/")
 def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
+    file_path = "../../data/movies.csv"
     new_movie = movie_data.dict()
+    new_movie["movieId"] = get_next_id(file_path)
+
     # à discuter
-    '''with open("data/movies.csv", mode='a', newline='', encoding='utf-8') as csv_file:
+    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=new_movie.keys())
-        csv_writer.writerow(new_movie)'''
+        csv_writer.writerow({'movieId': new_movie["movieId"] , 
+                             'title': new_movie["title"] ,
+                             'genres': new_movie["genres"] }
+                            )
 
     return {"message": "movie created successfully", "movie": new_movie}
+
