@@ -1,5 +1,4 @@
 import csv
-from pathlib import Path
 
 def create_fichier2():
     unique_user_ids = set()
