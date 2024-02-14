@@ -28,7 +28,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     admins = get_admins_from_file("admins.json")
     username = credentials.username
     password = credentials.password
-    if not(admins.get(username)) or not(pwd_context.verify(password, admins[username]['hashed_password'])):
+    if not(admins.get(username)) or not(pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
