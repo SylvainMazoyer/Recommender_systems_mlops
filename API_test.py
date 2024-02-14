@@ -12,4 +12,4 @@ def test_get_test():
 # Test du endpoint GET /secure-data/
 def test_get_secure_data():
     assert client.get("/secure-data/", headers={"Authorization": "Basic YWRtaWGRtMU4="}).status_code == 401
-    assert client.get("/secure-data/", headers={"Authorization": "Basic YWRtaW46ZGF0YXNjaWVudGVzdAo="}).status_code == 200
+    assert client.get("/secure-data/", headers={"Authorization": "Basic YWRtaW46ZGF0YXNjaWVudGVzdA=="}).status_code == 200
