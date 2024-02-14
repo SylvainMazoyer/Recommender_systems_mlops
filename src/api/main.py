@@ -86,8 +86,6 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
 
 class CreateUser(BaseModel):
     name: str
-    password:Optional[str] = None
-    role:str
     
 @api.post("/create-user/")
 def create_user(user_data: CreateUser):
@@ -95,7 +93,6 @@ def create_user(user_data: CreateUser):
     new_user = user_data.dict()
     new_user["userId"] = get_next_id(file_path, 'userId')
 
-    # à discuter
     with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file,
                                     fieldnames = ['userId', 'name'])
