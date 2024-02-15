@@ -7,3 +7,4 @@ typing
 fastapi
 httpx
 pytest
+streamlit
