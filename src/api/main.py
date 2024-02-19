@@ -6,14 +6,15 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 import json
 
+from src.models.random_model import random_recos
+
 
 api = FastAPI(
-    title="Movie recomandation API",
-    description="We will recomande the best movie for You",
+    title="Movie recommendation API",
+    description="We will recommend the best movies for You",
     version="1.0.1")
 
 security = HTTPBasic()
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_admins_from_file(file_path):
@@ -21,7 +22,7 @@ def get_admins_from_file(file_path):
         admins = json.load(file)
     return admins
 
-@api.get("/test")
+@api.get("/")
 def read_root():
     return {"message": "API is functional"}
 
@@ -37,7 +38,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return username
 
-@api.get("/secure-data/")
+@api.get("/admin")
 async def get_secure_data(username: str = Depends(verify_admin)):
     """
     Description:
@@ -52,5 +53,11 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     Raises:
     Aucune exception n'est levée explicitement, sauf si la dépendance `get_secure_data` échoue pour récupérer le nom d'utilisateur. Dans ce cas, une exception FastAPI sera levée automatiquement.
     """
-    return {"message": f"Hello {username}, you have access to secure data"}
+    return {"message": f"Hello {username}, you have access to secured data"}
 
+
+
+@api.get("/predict/rand_model")
+async def pred_rand_model():
+    results = random_recos().to_json(orient="records")
+    return results 

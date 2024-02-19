@@ -1,4 +1,6 @@
 import streamlit as st
+import requests
+import json
 
 st.set_page_config(
     page_title="Dataflix",
@@ -28,11 +30,18 @@ def run():
             st.session_state['user'] = st.text_input("User ID", key='uid', placeholder="Your ID", label_visibility="collapsed")
     
     if st.session_state['user'] == "":
-        st.image("assets/dataflix.png")
+        st.image("streamlit/assets/dataflix.png")
 
     else:
 
         # si le user n'est pas connu :
+
+        r_random = json.loads(requests.get("http://127.0.0.1:8000/predict/rand_model").json())
+        for i in range(5) :
+            st.write(r_random[i]["title"])
+
+
+
         st.write('Bienvenue ', st.session_state['user'], '!')
 
         st.write('Les films les plus populaires')
@@ -45,6 +54,7 @@ def run():
         with film2:
             st.header("Babe")
             st.video("https://www.youtube.com/watch?v=tVxeoUtVF0o")
+
 
 
 

@@ -1,6 +1,6 @@
 passlib[bcrypt]
 pandas
-sklearn
+scikit-learn
 ipykernel
 Pyarrow
 pydantic
@@ -9,4 +9,5 @@ fastapi
 httpx
 pytest
 streamlit
+requests
 
