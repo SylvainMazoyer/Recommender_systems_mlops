@@ -1,2 +1,12 @@
 passlib[bcrypt]
-FastAPI
+pandas
+sklearn
+ipykernel
+Pyarrow
+pydantic
+typing
+fastapi
+httpx
+pytest
+streamlit
+

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List, Optional
 from pydantic import BaseModel
+
 from passlib.context import CryptContext
 import json
 
@@ -52,3 +53,4 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     Aucune exception n'est levée explicitement, sauf si la dépendance `get_secure_data` échoue pour récupérer le nom d'utilisateur. Dans ce cas, une exception FastAPI sera levée automatiquement.
     """
     return {"message": f"Hello {username}, you have access to secure data"}
+
