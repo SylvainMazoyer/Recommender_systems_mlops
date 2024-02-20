@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi import FastAPI, Depends, HTTPException, Header, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List, Optional
 from pydantic import BaseModel
