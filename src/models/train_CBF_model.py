@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Import du jeu de données sur les films dans le répertoire data à la racine du projet
-df = pd.read_csv('./data/movies.csv')
+df = pd.read_csv('./data/films.csv')
 
 # formattage de la colonne genre
 df['Genres'] = df['genres'].apply(lambda x: ' '.join(x.split('|')))
