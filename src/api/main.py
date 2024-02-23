@@ -27,7 +27,7 @@ def read_root():
     return {"message": "API is functional"}
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
-    admins = get_admins_from_file("admins.json")
+    admins = get_admins_from_file("src/api/admins.json")
     username = credentials.username
     password = credentials.password
     if not(admins.get(username)) or not(pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
