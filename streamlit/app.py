@@ -19,7 +19,7 @@ st.set_page_config(
     page_title="Dataflix",
 )
 
-with open('app_streamlit/config.yaml') as file:
+with open('streamlit/config.yaml') as file:
         config = yaml.load(file, Loader=SafeLoader)
 
 authenticator = stauth.Authenticate(
@@ -34,7 +34,7 @@ authenticator = stauth.Authenticate(
 def run():
 
     if st.session_state["authentication_status"] is None:
-        st.image("app_streamlit/assets/dataflix.png")
+        st.image("streamlit/assets/dataflix.png")
 
     # Formulaire d'authentification sur la plateforme de streaming
     name, authentication_status, username = authenticator.login('main')
