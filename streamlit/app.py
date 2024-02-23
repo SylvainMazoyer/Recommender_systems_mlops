@@ -1,64 +1,61 @@
 import streamlit as st
 import requests
 import json
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+from streamlit_extras.grid import grid
+
+def print_reco(titre, endpoint):
+    my_grid = grid(1, 3, 2, vertical_align="center")
+    my_grid.title(titre)
+
+    r = json.loads(requests.get(f"http://127.0.0.1:8000/{endpoint}").json())
+    for i in range(5) :
+        with my_grid.expander(r[i]["title"], expanded=False):
+            st.video("https://www.youtube.com/watch?v=K26_sDKnvMU")
 
 st.set_page_config(
     page_title="Dataflix",
 )
 
+with open('app_streamlit/config.yaml') as file:
+        config = yaml.load(file, Loader=SafeLoader)
+
+authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days'],
+        config['preauthorized']
+    )
+
 
 def run():
 
-    if 'connect' not in st.session_state:
-        st.session_state['connect'] = False
+    if st.session_state["authentication_status"] is None:
+        st.image("app_streamlit/assets/dataflix.png")
 
-    if 'user' not in st.session_state:
-        st.session_state['user'] = ""
+    # Formulaire d'authentification sur la plateforme de streaming
+    name, authentication_status, username = authenticator.login('main')
 
-    def callback_connect():
-        st.session_state['connect'] = True
-
-
-    if st.session_state['connect'] == False :
-        col1, col2 = st.columns([0.7,0.3])
+    # Si la personne est authentifiée : 
+    if st.session_state["authentication_status"]:
+        col1, col2 = st.columns([0.85,0.15])
         with col2:
-            st.button('Se connecter', on_click=callback_connect)
+            authenticator.logout()
+        st.write(f'Welcome *{st.session_state["name"]}*')
 
-    if st.session_state['connect'] == True :
-        col1, col2 = st.columns([0.7,0.3])
-        with col2:
-            st.session_state['user'] = st.text_input("User ID", key='uid', placeholder="Your ID", label_visibility="collapsed")
-    
-    if st.session_state['user'] == "":
-        st.image("streamlit/assets/dataflix.png")
-
-    else:
-
-        # si le user n'est pas connu :
-
-        r_random = json.loads(requests.get("http://127.0.0.1:8000/predict/rand_model").json())
-        for i in range(5) :
-            st.write(r_random[i]["title"])
+        print_reco("5 films aléatoires", "predict/rand_model")
+        #print_reco("5 derniers films ajoutés", "predict/last")
+        #print_reco("5 films selon les films que vous avez aimés", "predict/content_model")
+        #print_reco("5 films aimés par des utilisateurs ayant les mêmes goûts que vous", "predict/social")
 
 
 
-        st.write('Bienvenue ', st.session_state['user'], '!')
-
-        st.write('Les films les plus populaires')
-        film1, film2, film3 = st.columns(3)
-
-        with film1:
-            st.header("Toy story")
-            st.video("https://www.youtube.com/watch?v=K26_sDKnvMU")
-
-        with film2:
-            st.header("Babe")
-            st.video("https://www.youtube.com/watch?v=tVxeoUtVF0o")
-
-
-
-
-
+    # Si l'authentification a échoué
+    elif st.session_state["authentication_status"] is False:
+        st.error('Username/password is incorrect')
 
 
 if __name__ == "__main__":
