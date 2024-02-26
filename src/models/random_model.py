@@ -7,7 +7,7 @@ def random_recos():
 
 
     # Import du jeu de données sur les films
-    df_movies = pd.read_csv('./src/data/movies.csv')
+    df_movies = pd.read_csv('./src/data/films.csv')
 
     # nombre de films disponibles dans movies.csv
     nb_movies = len(df_movies)

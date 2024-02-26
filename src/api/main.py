@@ -27,6 +27,7 @@ def get_admins_from_file(file_path):
 def read_root():
     return {"message": "API is functional"}
 
+# Authentification admin simple
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
     """
@@ -55,28 +56,6 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return username
 
-def verify_equipe_ds(username: str = Depends(verify_admin)):
-    """
-    Vérifie que l'utilisateur est membre de l'équipe de data science.
-
-    Args:
-        username (str): Le nom d'utilisateur.
-
-    Returns:
-        str: Le nom d'utilisateur de l'administrateur si celui-ci est membre de l'équipe de data science.
-
-    Raises:
-        HTTPException: Si l'administrateur n'est pas membre de l'équipe de data science, 
-        une exception HTTP 403 Forbidden est levée.
-    """
-    admins = get_admins_from_file("admins.json")
-    if admins.get(username).get("role") != "equipe_ds":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to access this resource",
-        )
-    return username
-
 @api.get("/admin")
 async def get_secure_data(username: str = Depends(verify_admin)):
     """
@@ -95,6 +74,37 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     Dans ce cas, une exception FastAPI sera levée automatiquement.
     """
     return {"message": f"Hello {username}, you have access to secure data"}
+
+
+# Authentification admin datascientist
+def verify_equipe_ds(username: str = Depends(verify_admin)):
+    """
+    Vérifie que l'utilisateur est membre de l'équipe de data science.
+
+    Args:
+        username (str): Le nom d'utilisateur.
+
+    Returns:
+        str: Le nom d'utilisateur de l'administrateur si celui-ci est membre de l'équipe de data science.
+
+    Raises:
+        HTTPException: Si l'administrateur n'est pas membre de l'équipe de data science, 
+        une exception HTTP 403 Forbidden est levée.
+    """
+    admins = get_admins_from_file("src/api/admins.json")
+    if admins.get(username).get("role") != "equipe_ds":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access this resource",
+        )
+    return username
+
+@api.get("/equipe_ds")
+async def test_secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):
+    return {"message": f"Hello {username}, you have access to secured data"}
+
+
+
 
     
 class CreateMovie(BaseModel):
@@ -144,9 +154,6 @@ def create_user(user_data: CreateUser):
 
     return {"message": "user created successfully", "user": new_user}
 
-@api.get("/equipe_ds")
-async def test_secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):
-    return {"message": f"Hello {username}, you have access to secured data"}
 
 
 
