@@ -13,7 +13,8 @@ def print_reco(titre, endpoint):
     r = json.loads(requests.get(f"http://127.0.0.1:8000/{endpoint}").json())
     for i in range(5) :
         with my_grid.expander(r[i]["title"], expanded=False):
-            st.video("https://www.youtube.com/watch?v=K26_sDKnvMU")
+            st.write("Genre : ", r[i]["genres"])
+            st.video(r[i]["youtubeId"])
 
 st.set_page_config(
     page_title="Dataflix",
