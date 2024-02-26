@@ -1,13 +1,13 @@
 import csv
 from fastapi import FastAPI, Depends, HTTPException, Header, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
-
 from passlib.context import CryptContext
 import json
-import sys
-sys.path.append("/home/ubuntu/projet/nov23_continu_mlops_recommandations")
+import csv
+from pathlib import Path
+
 from src.models.random_model import random_recos
 
 api = FastAPI(
@@ -28,6 +28,7 @@ def read_root():
     return {"message": "API is functional"}
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
+
     """
     Vérifie les informations d'identification de l'administrateur.
 
@@ -42,7 +43,8 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         une exception HTTP 401 Unauthorized est levée.
     """
     
-    admins = get_admins_from_file("admins.json")
+    admins = get_admins_from_file("src/api/admins.json")
+
     username = credentials.username
     password = credentials.password
     if not(admins.get(username)) or not(pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
@@ -92,7 +94,55 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     `get_secure_data` échoue pour récupérer le nom d'utilisateur. 
     Dans ce cas, une exception FastAPI sera levée automatiquement.
     """
-    return {"message": f"Hello {username}, you have access to secured data"}
+    return {"message": f"Hello {username}, you have access to secure data"}
+
+    
+class CreateMovie(BaseModel):
+    title: str
+    genres : Optional[str] = None
+
+def get_next_id(file_path, columnid):
+    with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        # Determine the maximum movieid
+        max_id = max(int(row[columnid]) for row in csv_reader)
+    # Return the next available movieid
+    return max_id + 1
+
+@api.post("/create-movie")
+def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
+    file_path = "../../data/movies.csv"
+    new_movie = movie_data.dict()
+    new_movie["movieId"] = get_next_id(file_path, 'movieId')
+
+    # à discuter
+    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, 
+                                    fieldnames = ['movieId', 'title', 'genres'])
+        csv_writer.writerow({'movieId': new_movie["movieId"] , 
+                             'title': new_movie["title"] ,
+                             'genres': new_movie["genres"] }
+                            )
+
+    return {"message": "movie created successfully", "movie": new_movie}
+
+class CreateUser(BaseModel):
+    name: str
+    
+@api.post("/create-user")
+def create_user(user_data: CreateUser):
+    file_path = "../../data/users.csv"
+    new_user = user_data.dict()
+    new_user["userId"] = get_next_id(file_path, 'userId')
+
+    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.DictWriter(csv_file,
+                                    fieldnames = ['userId', 'name'])
+        csv_writer.writerow({'userId': new_user["userId"] , 
+                             'name': new_user["name"]}
+                            )
+
+    return {"message": "user created successfully", "user": new_user}
 
 @api.get("/equipe_ds")
 async def test_secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):

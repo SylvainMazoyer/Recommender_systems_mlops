@@ -10,4 +10,7 @@ httpx
 pytest
 streamlit
 requests
-
+streamlit-extras
+streamlit_authenticator
+csv
+pathlib
