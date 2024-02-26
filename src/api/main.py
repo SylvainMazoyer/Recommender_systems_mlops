@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi import FastAPI, Depends, HTTPException, Header, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Optional
 from pydantic import BaseModel
@@ -7,13 +7,15 @@ import json
 import csv
 from pathlib import Path
 
+from src.models.random_model import random_recos
+
+
 api = FastAPI(
-    title="Movie recomandation API",
-    description="We will recomande the best movie for You",
+    title="Movie recommendation API",
+    description="We will recommend the best movies for You",
     version="1.0.1")
 
 security = HTTPBasic()
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_admins_from_file(file_path):
@@ -21,15 +23,15 @@ def get_admins_from_file(file_path):
         admins = json.load(file)
     return admins
 
-@api.get("/test")
+@api.get("/")
 def read_root():
     return {"message": "API is functional"}
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
-    admins = get_admins_from_file("admins.json")
+    admins = get_admins_from_file("src/api/admins.json")
     username = credentials.username
     password = credentials.password
-    if not(admins.get(username)) or not(pwd_context.verify(password, admins[username]['hashed_password'])):
+    if not(admins.get(username)) or not(pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -37,7 +39,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return username
 
-@api.get("/secure-data/")
+@api.get("/admin")
 async def get_secure_data(username: str = Depends(verify_admin)):
     """
     Description:
@@ -67,7 +69,7 @@ def get_next_id(file_path, columnid):
     # Return the next available movieid
     return max_id + 1
 
-@api.post("/create-movie/")
+@api.post("/create-movie")
 def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
     file_path = "../../data/movies.csv"
     new_movie = movie_data.dict()
@@ -87,7 +89,7 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
 class CreateUser(BaseModel):
     name: str
     
-@api.post("/create-user/")
+@api.post("/create-user")
 def create_user(user_data: CreateUser):
     file_path = "../../data/users.csv"
     new_user = user_data.dict()
@@ -103,3 +105,8 @@ def create_user(user_data: CreateUser):
     return {"message": "user created successfully", "user": new_user}
 
 
+
+@api.get("/predict/rand_model")
+async def pred_rand_model():
+    results = random_recos().to_json(orient="records")
+    return results 

@@ -1,2 +1,16 @@
 passlib[bcrypt]
+pandas
+scikit-learn
+ipykernel
+Pyarrow
+pydantic
+typing
 fastapi
+httpx
+pytest
+streamlit
+requests
+streamlit-extras
+streamlit_authenticator
+csv
+pathlib

@@ -1,6 +1,6 @@
 {
     "admin": {
         "username": "admin",
-        "hashed_password": "$2b$12$Fg0dr9iO8B0OBOoxiXmM7OGq/7BCE6.ATZ8g0kZB4Jabb4/mERdVm"
+        "password": "datascientest"
     }
 }
