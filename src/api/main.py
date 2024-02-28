@@ -1,13 +1,10 @@
 import csv
-from fastapi import FastAPI, Depends, HTTPException, Header, status
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Optional
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import json
-import csv
-from pathlib import Path
-
 from src.models.random_model import random_recos
 
 api = FastAPI(
@@ -18,14 +15,17 @@ api = FastAPI(
 security = HTTPBasic()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def get_admins_from_file(file_path):
     with open(file_path, "r") as file:
         admins = json.load(file)
     return admins
 
+
 @api.get("/")
 def read_root():
     return {"message": "API is functional"}
+
 
 # Authentification admin simple
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
@@ -34,21 +34,22 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     Vérifie les informations d'identification de l'administrateur.
 
     Args:
-        credentials (HTTPBasicCredentials): Les informations d'identification HTTP de l'utilisateur.
+        credentials (HTTPBasicCredentials):
+        Les informations d'identification HTTP de l'utilisateur.
 
     Returns:
-        str: Le nom d'utilisateur de l'administrateur si les informations d'identification sont valides.
+        str: Le nom d'utilisateur de l'administrateur
+        si les informations d'identification sont valides.
 
     Raises:
-        HTTPException: Si les informations d'identification sont incorrectes, 
+        HTTPException: Si les informations d'identification sont incorrectes,
         une exception HTTP 401 Unauthorized est levée.
     """
-    
     admins = get_admins_from_file("src/api/admins.json")
 
     username = credentials.username
     password = credentials.password
-    if not(admins.get(username)) or not(pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
+    if not (admins.get(username)) or not (pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -106,11 +107,6 @@ async def test_secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):
 
 
 
-    
-class CreateMovie(BaseModel):
-    title: str
-    genres : Optional[str] = None
-
 def get_next_id(file_path, columnid):
     with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
@@ -119,66 +115,14 @@ def get_next_id(file_path, columnid):
     # Return the next available movieid
     return max_id + 1
 
-@api.post("/create-movie")
-def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
-    file_path = "../../data/movies.csv"
-    new_movie = movie_data.dict()
-    new_movie["movieId"] = get_next_id(file_path, 'movieId')
-
-    # à discuter
-    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.DictWriter(csv_file, 
-                                    fieldnames = ['movieId', 'title', 'genres'])
-        csv_writer.writerow({'movieId': new_movie["movieId"] , 
-                             'title': new_movie["title"] ,
-                             'genres': new_movie["genres"] }
-                            )
-
-    return {"message": "movie created successfully", "movie": new_movie}
 
 class CreateUser(BaseModel):
     name: str
+
+
     
 @api.post("/create-user")
 def create_user(user_data: CreateUser):
-    file_path = "../../data/users.csv"
-    new_user = user_data.dict()
-    new_user["userId"] = get_next_id(file_path, 'userId')
-
-    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.DictWriter(csv_file,
-                                    fieldnames = ['userId', 'name'])
-        csv_writer.writerow({'userId': new_user["userId"] , 
-                             'name': new_user["name"]}
-                            )
-
-    return {"message": "user created successfully", "user": new_user}
-
-
-
-
-@api.get("/predict/rand_model")
-async def pred_rand_model():
-    results = random_recos().to_json(orient="records")
-    return results
-
-def get_next_id(file_path, columnid):
-    with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        # Determine the maximum movieid
-        max_id = max(int(row[columnid]) for row in csv_reader)
-    # Return the next available movieid
-    return max_id + 1
-
-class CreateUser(BaseModel):
-    name: str
-
-class CreateMovie(BaseModel):
-    title: str
-    genres : Optional[str] = None
-    
-@api.post("/create-user/")
-def create_user(user_data: CreateUser, user: str = Depends(verify_admin)):
     """
     Crée un nouvel utilisateur dans le système.
 
@@ -195,20 +139,37 @@ def create_user(user_data: CreateUser, user: str = Depends(verify_admin)):
         une exception HTTP 401 Unauthorized est levée.
     """
     
-    file_path = "../../data/users.csv"
-    new_user = user_data.dict()
-    new_user["userId"] = get_next_id(file_path, 'userId')
+    file_path = "data/users.csv"
+    new_user = user_data.model_dump()
 
-    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.DictWriter(csv_file,
-                                    fieldnames = ['userId', 'name'])
-        csv_writer.writerow({'userId': new_user["userId"] , 
-                             'name': new_user["name"]}
-                            )
+    response = {}
 
-    return {"message": "user created successfully", "user": new_user}
+       # Cas où le user existe déjà
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if new_user["name"] == row['name']:
+                response = {"message": "user already exists", "user": new_user}
 
-@api.post("/create-movie/")
+    if response == {}:
+        with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
+            new_user["userId"] = get_next_id(file_path, 'userId')
+            csv_writer = csv.DictWriter(csv_file,
+                                        fieldnames = ['userId', 'name'])
+            csv_writer.writerow({'userId': new_user["userId"] , 
+                                'name': new_user["name"]}
+                                )
+            response = {"message": "user created successfully", "user": new_user}
+
+    return response
+
+
+
+class CreateMovie(BaseModel):
+    title: str
+    genres : Optional[str] = None
+
+@api.post("/create-movie")
 def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
     """
     Crée un nouveau film dans le système.
@@ -223,19 +184,37 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
 
     Raises:
         HTTPException: Si l'administrateur n'a pas les autorisations appropriées, 
-        une exception HTTP 402 Unauthorized est levée.
+        une exception HTTP 401 Unauthorized est levée.
     """
-    file_path = "../../data/movies.csv"
-    new_movie = movie_data.dict()
-    new_movie["movieId"] = get_next_id(file_path, 'movieId')
+    file_path = "src/data/films.csv"
+    response = {}
 
-    # à discuter
-    with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.DictWriter(csv_file, 
-                                    fieldnames = ['movieId', 'title', 'genres'])
-        csv_writer.writerow({'movieId': new_movie["movieId"] , 
-                             'title': new_movie["title"] ,
-                             'genres': new_movie["genres"] }
-                            )
+    new_movie = movie_data.model_dump()
+        
+    # Cas où le film existe déjà
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if new_movie["title"] == row['title']:
+                response = {"message": "movie already exists", "movie": new_movie}
 
-    return {"message": "movie created successfully", "movie": new_movie}
+    if response == {}:
+        new_movie["movieId"] = get_next_id(file_path, 'movieId')
+
+        with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
+                
+            csv_writer = csv.DictWriter(csv_file, fieldnames = ['movieId', 'title', 'genres'])
+            csv_writer.writerow({'movieId': new_movie["movieId"] , 
+                                    'title': new_movie["title"] ,
+                                    'genres': new_movie["genres"] }
+                                    )
+            response = {"message": "movie created successfully", "movie": new_movie}
+
+    return response
+
+
+
+@api.get("/predict/rand_model")
+async def pred_rand_model():
+    results = random_recos().to_json(orient="records")
+    return results
