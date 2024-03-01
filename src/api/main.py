@@ -6,6 +6,11 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 import json
 from src.models.random_model import random_recos
+import logging 
+
+
+logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
+                    format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 api = FastAPI(
     title="Movie recommendation API",
@@ -24,6 +29,7 @@ def get_admins_from_file(file_path):
 
 @api.get("/")
 def read_root():
+    logging.info('Appel API GET /')
     return {"message": "API is functional"}
 
 
@@ -50,6 +56,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     username = credentials.username
     password = credentials.password
     if not (admins.get(username)) or not (pwd_context.verify(password, pwd_context.hash(admins.get(username).get('password')))):
+        logging.info('%s : ERREUR 401 : Accès admin non autorisé', username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -74,6 +81,7 @@ async def get_secure_data(username: str = Depends(verify_admin)):
     `get_secure_data` échoue pour récupérer le nom d'utilisateur. 
     Dans ce cas, une exception FastAPI sera levée automatiquement.
     """
+    logging.info('%s : Accès admin autorisé', username)
     return {"message": f"Hello {username}, you have access to secure data"}
 
 
@@ -94,6 +102,7 @@ def verify_equipe_ds(username: str = Depends(verify_admin)):
     """
     admins = get_admins_from_file("src/api/admins.json")
     if admins.get(username).get("role") != "equipe_ds":
+        logging.info('%s : ERREUR 403 : Accès datascientist non autorisé', username)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to access this resource",
@@ -102,6 +111,7 @@ def verify_equipe_ds(username: str = Depends(verify_admin)):
 
 @api.get("/equipe_ds")
 async def test_secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):
+    logging.info('%s : Accès datascientist autorisé', username)
     return {"message": f"Hello {username}, you have access to secured data"}
 
 
@@ -150,6 +160,7 @@ def create_user(user_data: CreateUser):
         for row in reader:
             if new_user["name"] == row['name']:
                 response = {"message": "user already exists", "user": new_user}
+                logging.info('%s : Accès API POST /create-user : user déjà existant', new_user["name"])
 
     if response == {}:
         with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
@@ -160,6 +171,7 @@ def create_user(user_data: CreateUser):
                                 'name': new_user["name"]}
                                 )
             response = {"message": "user created successfully", "user": new_user}
+            logging.info('%s : Accès API POST /create-user : user créé', new_user["name"])
 
     return response
 
@@ -197,6 +209,7 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
         for row in reader:
             if new_movie["title"] == row['title']:
                 response = {"message": "movie already exists", "movie": new_movie}
+                logging.info('%s : Accès API POST /create-movie : film "%s" déjà existant', user, new_movie["title"] )
 
     if response == {}:
         new_movie["movieId"] = get_next_id(file_path, 'movieId')
@@ -209,6 +222,7 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
                                     'genres': new_movie["genres"] }
                                     )
             response = {"message": "movie created successfully", "movie": new_movie}
+            logging.info('%s : Accès API POST /create-movie : film "%s" créé', user, new_movie["title"] )
 
     return response
 
@@ -216,5 +230,20 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
 
 @api.get("/predict/rand_model")
 async def pred_rand_model():
-    results = random_recos().to_json(orient="records")
-    return results
+    """
+    Renvoie 5 films aléatoires
+
+    Args:
+        None
+
+    Returns:
+        json: 5 films aléatoires avec leur id, leur genre et leur trailer
+
+    Raises:
+
+    """    
+    results = random_recos()
+    logging.info('Accès API GET /predict/rand_model : %s', results[["movieId", 'title']].to_json(orient="records"))
+    results_json = results.to_json(orient="records")
+
+    return results_json
