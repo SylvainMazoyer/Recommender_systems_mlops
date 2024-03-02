@@ -1,13 +1,10 @@
 import streamlit as st
 import requests
 import json
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
 from streamlit_extras.grid import grid
 
-
-def print_reco(titre, endpoint):
+# Affichage des 5 films recommandés via la méthode corresondant au endpoint fourni
+def print_reco(titre, endpoint, username):
     my_grid = grid(1, 3, 2, vertical_align="center")
     my_grid.title(titre)
 
@@ -16,70 +13,56 @@ def print_reco(titre, endpoint):
         with my_grid.expander(r[i]["title"], expanded=False):
             st.write("Genre : ", r[i]["genres"])
             st.video(r[i]["youtubeId"])
-            st.button("Lancer le film", key=r[i]["movieId"], on_click=click_movie, args=(r[i]["movieId"],))
+            st.button("Lancer le film", key=str(r[i]["movieId"])+"button", on_click=click_movie, args=(r[i]["movieId"],username,))
+            st.slider('Votre avis sur le film',1,5,3,1,key=str(r[i]["movieId"])+"slider", on_change=click_note, args=(r[i]["movieId"],username,))
 
+# Simule la visualisation d'un film
+def click_movie(movie_id,username):
+    st.write("movie watched : ",movie_id,username)
+    #requests.post("http://127.0.0.1:8000/user_activity", 
+    #                    headers={"Content-Type": "application/json"}, 
+    #                    data=json.dumps({"username":username, "movieId":movie_id}) )
+    
 
-def click_movie(movie_id):
-    st.write("movie watched : ",movie_id)
+# Ajout d'une note à un film
+def click_note(movie_id,username):
+    st.write("movie rated : ",movie_id,username, st.session_state[str(movie_id)+"slider"])
+    #requests.post("http://127.0.0.1:8000/user_activity", 
+    #                    headers={"Content-Type": "application/json"}, 
+    #                    data=json.dumps({"username":username, "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]}) )
+    
 
-
+# Config de la page 
 st.set_page_config(
     page_title="Dataflix",
 )
 
-with open('streamlit/config.yaml') as file:
-        config = yaml.load(file, Loader=SafeLoader)
-
-authenticator = stauth.Authenticate(
-        config['credentials'],
-        config['cookie']['name'],
-        config['cookie']['key'],
-        config['cookie']['expiry_days'],
-        config['preauthorized']
-    )
+@st.cache_data(ttl=60)
+def api_call_create_user(username):
+    response = requests.post("http://127.0.0.1:8000/create-user", 
+                        headers={"Content-Type": "application/json"}, 
+                        data=json.dumps({"name":username}) ).json()["message"]
+    if 'api_call_create_user' not in st.session_state :
+        st.session_state['api_call_create_user'] = response
 
 
-def run():
+def run():   
 
-    if st.session_state["authentication_status"] is None:
-        st.image("streamlit/assets/dataflix.png")
+    form = st.form(key='my-form')
+    username = form.text_input('Enter your name')
+    submit = form.form_submit_button('Submit', on_click=api_call_create_user, args=(username,))
 
-    # Formulaire d'authentification sur la plateforme de streaming
-    name, authentication_status, username = authenticator.login('main')
-
-    # Si la personne est authentifiée : 
-    if st.session_state["authentication_status"]:
-        col1, col2 = st.columns([0.85,0.15])
-        with col2:
-            authenticator.logout()
-            if 'user_status' in st.session_state:
-                del st.session_state["user_status"]
-        st.write(f'Welcome *{st.session_state["name"]}*')
-
-        if 'user_status' not in st.session_state: 
-            st.session_state["user_status"] = requests.post("http://127.0.0.1:8000/create-user", 
-                                    headers={"Content-Type": "application/json"}, 
-                                    data=json.dumps({"name":username}) ).json()["message"]
-
-            if st.session_state["user_status"]=="user already exists":
-                st.write('connu')
-                # print_reco("5 films selon les films que vous avez aimés", "predict/content_model")
-                # print_reco("5 films aimés par des utilisateurs ayant les mêmes goûts que vous", "predict/social")
-            else :
-                print_reco("5 films aléatoires", "predict/rand_model")
+    if 'api_call_create_user' in st.session_state :
+        if st.session_state['api_call_create_user'] == 'user already exists':
+            print_reco('5 films aléatoires', 'predict/rand_model', username)
+            print_reco('5 films aléatoires', 'predict/rand_model', username)
 
 
+        elif st.session_state['api_call_create_user'] == 'user créé' : 
+            print_reco('5 films aléatoires', 'predict/rand_model')
 
-        # print_reco("5 films aléatoires", "predict/rand_model")
-        # print_reco("5 derniers films ajoutés", "predict/last")
-        # print_reco("5 films selon les films que vous avez aimés", "predict/content_model")
-        # print_reco("5 films aimés par des utilisateurs ayant les mêmes goûts que vous", "predict/social")
+        
 
-
-
-    # Si l'authentification a échoué
-    elif st.session_state["authentication_status"] is False:
-        st.error('Username/password is incorrect')
 
 
 if __name__ == "__main__":
