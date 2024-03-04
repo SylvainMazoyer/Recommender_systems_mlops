@@ -5,13 +5,15 @@ from typing import Optional
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import json
+import sys
+sys.path.append('/home/ubuntu/projet/nov23_continu_mlops_recommandations')
 from src.models.random_model import random_recos
 import logging 
 
 
-logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
+'''logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
-
+'''
 api = FastAPI(
     title="Movie recommendation API",
     description="We will recommend the best movies for You",
@@ -51,7 +53,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         HTTPException: Si les informations d'identification sont incorrectes,
         une exception HTTP 401 Unauthorized est levée.
     """
-    admins = get_admins_from_file("src/api/admins.json")
+    admins = get_admins_from_file("admins.json")
 
     username = credentials.username
     password = credentials.password
@@ -100,7 +102,7 @@ def verify_equipe_ds(username: str = Depends(verify_admin)):
         HTTPException: Si l'administrateur n'est pas membre de l'équipe de data science, 
         une exception HTTP 403 Forbidden est levée.
     """
-    admins = get_admins_from_file("src/api/admins.json")
+    admins = get_admins_from_file("admins.json")
     if admins.get(username).get("role") != "equipe_ds":
         logging.info('%s : ERREUR 403 : Accès datascientist non autorisé', username)
         raise HTTPException(
@@ -110,12 +112,9 @@ def verify_equipe_ds(username: str = Depends(verify_admin)):
     return username
 
 @api.get("/equipe_ds")
-async def test_secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):
+async def secure_data_equipe_ds(username: str = Depends(verify_equipe_ds)):
     logging.info('%s : Accès datascientist autorisé', username)
-    return {"message": f"Hello {username}, you have access to secured data"}
-
-
-
+    return {"message": f"Hello {username}, you have access to secure data"}
 
 def get_next_id(file_path, columnid):
     with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
@@ -149,7 +148,7 @@ def create_user(user_data: CreateUser):
         une exception HTTP 401 Unauthorized est levée.
     """
     
-    file_path = "data/users.csv"
+    file_path = "/home/ubuntu/projet/nov23_continu_mlops_recommandations/data/users.csv"
     new_user = user_data.model_dump()
 
     response = {}
@@ -243,7 +242,8 @@ async def pred_rand_model():
 
     """    
     results = random_recos()
-    logging.info('Accès API GET /predict/rand_model : %s', results[["movieId", 'title']].to_json(orient="records"))
+    logging.info('Accès API GET /predict/rand_model : %s', 
+                 results[["movieId", 'title']].to_json(orient="records"))
     results_json = results.to_json(orient="records")
 
     return results_json
