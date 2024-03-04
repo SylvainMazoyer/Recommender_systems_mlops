@@ -9,11 +9,8 @@ df = pd.read_csv('./data/films.csv')
 # formattage de la colonne genre
 df['Genres'] = df['genres'].apply(lambda x: ' '.join(x.split('|')))
 
-# formattage de la colonne title avec suppression de la date 
-df['Title'] = df["title"].apply(lambda x:x[:-6])
-
 # création de la colonne descriptive de l'ensemble du film
-df['Description'] = df['Title'] + df['Genres']
+df['Description'] = df['title'] + " " + df['Genres']
 
 # Créer un TfidfVectorizer et supprimer les mots vides
 tfidf = TfidfVectorizer(stop_words='english')
@@ -24,7 +21,10 @@ matrice_tfidf = tfidf.fit_transform(df['Description'])
 # On calcule la similarité cosinus
 sim_cosinus = cosine_similarity(matrice_tfidf, matrice_tfidf)
 
-# Créer une série d'indices en utilisant la colonne 'title' comme index
-indices = pd.Series(range(0,len(df)), index=df['title'])
+# conversion du type de la similarité cosinus en float16 pour améliorer le temps de chargement de cette matrice pour faire les prédictions
+sim_cosinus = sim_cosinus.astype('float16')
+
+# enregistrement dans un fichier
+np.savetxt("./data/sim_cos_CBF", sim_cosinus)
 
 
