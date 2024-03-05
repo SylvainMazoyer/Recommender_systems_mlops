@@ -45,7 +45,6 @@ def api_call_create_user(username):
 
 
 def run():   
-
     form = st.form(key='my-form')
     username = form.text_input('Enter your name')
     submit = form.form_submit_button('Submit', on_click=api_call_create_user, args=(username,))

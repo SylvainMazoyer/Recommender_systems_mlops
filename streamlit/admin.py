@@ -41,7 +41,7 @@ def run_create_movie(username, password):
     
     create = st.button('Create movie')
 
-    if create and st.session_state.selected_action == "Create Movie":
+    if create and st.session_state.action == "Create Movie":
         if title:
             if api_call_create_movie(title, year, selected_genres, username, password):
                 st.success("Movie created successfully!")
@@ -84,12 +84,11 @@ def run_auth():
     return username, password
 
 def call_action():
-    st.session_state.action = True
-
+    st.session_state.action = 'action'
 
 def run():
     if "action" not in st.session_state:
-        st.session_state.action = False
+        st.session_state.action = None
     if "role" not in st.session_state :
         st.session_state.role = None
         
@@ -100,11 +99,11 @@ def run():
         selected_action = st.selectbox("Select Action", actions, 
                                        on_change=call_action
                                        )
-        if st.session_state.action :
-            st.session_state.selected_action = selected_action
-            if selected_action == "Create Movie":
+        if 'action' in st.session_state :
+            st.session_state.action = selected_action
+            if st.session_state.action == "Create Movie":
                 run_create_movie(username, password)
-            elif selected_action == "Action 2":
+            elif st.session_state.action == "Action 2":
                 st.write("Action loading ...")        
 
     elif st.session_state.role == "equipe_ds":
