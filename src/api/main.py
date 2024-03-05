@@ -148,7 +148,7 @@ def create_user(user_data: CreateUser):
         une exception HTTP 401 Unauthorized est levée.
     """
     
-    file_path = "/home/ubuntu/projet/nov23_continu_mlops_recommandations/data/users.csv"
+    file_path = "/home/ubuntu/projet/nov23_continu_mlops_recommandations/data/utilisateur.csv"
     new_user = user_data.model_dump()
 
     response = {}
@@ -197,7 +197,7 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
         HTTPException: Si l'administrateur n'a pas les autorisations appropriées, 
         une exception HTTP 401 Unauthorized est levée.
     """
-    file_path = "src/data/films.csv"
+    file_path = "/home/ubuntu/projet/nov23_continu_mlops_recommandations/data/films.csv"
     response = {}
 
     new_movie = movie_data.model_dump()
