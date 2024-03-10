@@ -27,6 +27,6 @@ def train_CBF_model():
     sim_cosinus = sim_cosinus.astype('float16')
 
     # enregistrement dans un fichier
-    np.savetxt("./data/sim_cos_CBF", sim_cosinus)
+    np.savetxt("./data/sim_cos_CBF.txt", sim_cosinus)
 
 

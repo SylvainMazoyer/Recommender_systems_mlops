@@ -31,6 +31,6 @@ def recommandations_CBF(titre, mat_sim, num_recommendations = 10):
     return recommended_movies
 
 titre = "Toy Story (1995)"
-mat_sim = np.loadtxt("./data/sim_cos_CBF")
+mat_sim = np.loadtxt("./data/sim_cos_CBF.txt")
 
 print(recommandations_CBF(titre, mat_sim, 5))
