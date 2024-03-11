@@ -1,0 +1,12 @@
+{
+    "plateforme": {
+        "username": "plateforme",
+        "password": "123",
+        "role": "plateforme"
+    },
+    "equipe_ds": {
+        "username": "equipe_ds",
+        "password": "123",
+        "role": "equipe_ds"
+    }
+}
