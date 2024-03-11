@@ -1,3 +1,4 @@
 pandas
-sklearn
-tabulate
+numpy
+scickit-learn
+
