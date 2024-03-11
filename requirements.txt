@@ -1,5 +1,6 @@
 passlib[bcrypt]
 pandas
+numpy
 scikit-learn
 ipykernel
 Pyarrow
