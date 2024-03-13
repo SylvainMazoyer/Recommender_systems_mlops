@@ -34,28 +34,27 @@ def click_note(movie_id,username):
     #                    data=json.dumps({"username":username, "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]}) )
     
 
-
 @st.cache_data(ttl=60)
 def api_call_create_user(username):
     response = requests.post("http://127.0.0.1:8000/create-user", 
                         headers={"Content-Type": "application/json"}, 
                         data=json.dumps({"name":username}) ).json()["message"]
-    if 'api_call_create_user' not in st.session_state :
-        st.session_state['api_call_create_user'] = response
-
+    st.session_state['api_call_create_user'] = response
 
 def run():   
+
+    st.image('streamlit/assets/dataflix.png')
+
     form = st.form(key='my-form')
     username = form.text_input('Enter your name')
     submit = form.form_submit_button('Submit', on_click=api_call_create_user, args=(username,))
-
+    
     if 'api_call_create_user' in st.session_state :
         if st.session_state['api_call_create_user'] == 'user already exists':
             print_reco('5 films aléatoires', 'predict/rand_model', username)
+
+        elif st.session_state['api_call_create_user'] == 'user created successfully' : 
             print_reco('5 films aléatoires', 'predict/rand_model', username)
 
-
-        elif st.session_state['api_call_create_user'] == 'user créé' : 
-            print_reco('5 films aléatoires', 'predict/rand_model')
 
 

@@ -21,10 +21,10 @@ def run():
         "https://dst-studio-template.s3.eu-west-3.amazonaws.com/logo-datascientest.png",
         width=200,
     )
-    st.title("Projet de recommandation des films")
+    #st.title("Projet de recommandation des films")
     st.sidebar.title("Sommaire")
 
-    page_name = st.sidebar.radio("allez vers", TABS.keys())
+    page_name = st.sidebar.radio("allez vers", TABS.keys(),label_visibility='collapsed')
     st.sidebar.markdown("---")
     
     tab = TABS[page_name]

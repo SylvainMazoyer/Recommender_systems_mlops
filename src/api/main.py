@@ -9,7 +9,7 @@ import sys
 sys.path.append('/home/ubuntu/projet/nov23_continu_mlops_recommandations')
 from src.models.random_model import random_recos
 import logging 
-
+import pandas as pd
 
 '''logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
@@ -148,29 +148,16 @@ def create_user(user_data: CreateUser):
         une exception HTTP 401 Unauthorized est levée.
     """
     
-    file_path = "/home/ubuntu/projet/nov23_continu_mlops_recommandations/data/utilisateur.csv"
+    file_path = "data/utilisateurs.csv"
     new_user = user_data.model_dump()
 
-    response = {}
-
-       # Cas où le user existe déjà
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            if new_user["name"] == row['name']:
-                response = {"message": "user already exists", "user": new_user}
-                logging.info('%s : Accès API POST /create-user : user déjà existant', new_user["name"])
-
-    if response == {}:
-        with open(file_path, mode='a', newline='', encoding='utf-8') as csv_file:
-            new_user["userId"] = get_next_id(file_path, 'userId')
-            csv_writer = csv.DictWriter(csv_file,
-                                        fieldnames = ['userId', 'name'])
-            csv_writer.writerow({'userId': new_user["userId"] , 
-                                'name': new_user["name"]}
-                                )
-            response = {"message": "user created successfully", "user": new_user}
-            logging.info('%s : Accès API POST /create-user : user créé', new_user["name"])
+    df = pd.read_csv(file_path) 
+    if len(df[df['name'] == new_user['name']])== 0: 
+        response = {"message": "user created successfully", "user": new_user}
+        logging.info('%s : Accès API POST /create-user : user créé', new_user["name"])
+    else :
+        response = {"message": "user already exists", "user": new_user}
+        logging.info('%s : Accès API POST /create-user : user déjà existant', new_user["name"])
 
     return response
 
