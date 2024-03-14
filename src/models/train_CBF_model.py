@@ -28,6 +28,3 @@ def train_CBF_model():
 
     # enregistrement dans un fichier
     np.savetxt("./data/sim_cos_CBF.txt", sim_cosinus)
-
-
-train_CBF_model()
