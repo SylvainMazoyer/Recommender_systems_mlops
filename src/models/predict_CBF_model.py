@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def recommandations_CBF(titre, mat_sim, num_recommendations = 10):
-
-        # Import du jeu de données sur les films pour les titres
-    df = pd.read_csv('./data/films.csv')
+def recommandations_CBF(df, titre, mat_sim, num_recommendations = 10):
 
         #  Créer une série d'indices en utilisant la colonne 'title' comme index
     indices = pd.Series(range(0,len(df)), index=df['title'])
@@ -37,7 +34,9 @@ def recommandations_CBF(titre, mat_sim, num_recommendations = 10):
 
     return reco
 
+films_path = './data/films.csv'
+df_films = pd.read_csv(films_path)
 titre = "Toy Story (1995)"
 mat_sim = np.loadtxt("./data/sim_cos_CBF.txt")
 
-print(recommandations_CBF(titre, mat_sim, 5))
+print(recommandations_CBF(df_films, titre, mat_sim, 5))
