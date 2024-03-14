@@ -28,7 +28,14 @@ def recommandations_CBF(titre, mat_sim, num_recommendations = 10):
         # Renvoyer les titres des films les plus similaires
     recommended_movies = [indices.index[idx] for idx, score in top_similair]
 
-    return recommended_movies
+    reco = {}
+
+    for i in range(0, 5):
+
+        movieId = df[df["title"] == recommended_movies[i]]["movieId"].iloc[0]
+        reco[movieId] = recommended_movies[i]
+
+    return reco
 
 titre = "Toy Story (1995)"
 mat_sim = np.loadtxt("./data/sim_cos_CBF.txt")
