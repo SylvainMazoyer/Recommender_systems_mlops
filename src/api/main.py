@@ -9,6 +9,7 @@ import sys
 sys.path.append('/home/ubuntu/projet/nov23_continu_mlops_recommandations')
 from src.models.random_model import random_recos
 from src.models.train_CBF_model import train_CBF_model
+from src.models.load_CBF_similarity_matrix import load_CBF_similarity_matrix
 import logging 
 import pandas as pd
 
@@ -254,5 +255,26 @@ async def pred_rand_model():
 
     train_CBF_model()
     response = { "CBF model trained": "Done"}
+
+    return response
+
+
+@api.get("/train/load_sim_matrix")
+async def pred_rand_model():
+    """
+    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement du streamlit
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+
+    """    
+
+    load_CBF_similarity_matrix()
+    response = { "Similarity matrix loaded": "Done"}
     
     return response
