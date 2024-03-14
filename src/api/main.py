@@ -309,7 +309,7 @@ async def predict_CBF_model(user_data: CreateUser):
     df_films = pd.read_csv(films_path)
     title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
 
-    response = recommandations_CBF(df_films, title, mat_sim, 10)
+    response = recommandations_CBF(df_films, title, mat_sim, 5)
     
     return response
 
