@@ -14,6 +14,7 @@ from src.models.predict_CBF_model import recommandations_CBF
 import logging 
 import pandas as pd
 import uvicorn
+import time
 
 '''logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
@@ -313,6 +314,36 @@ async def predict_CBF_model(user_data: CreateUser):
     
     return response
 
+class Watch_movie(BaseModel):
+    userId: int
+    movieId: int
+    rating: Optional[int] = 3
+
+@api.post("/user_activity")
+def user_activity(watched: Watch_movie):
+    """ récupère l'activité d'un utilisateur lorsque celui-ci clique sur le trailer d'un film 
+    - met à jour à jour la table utilisateurs avec l'id du film en question comme dernier film regardé
+    - met à jour la table notes avec une note de 3 pour le film regardé"""
+
+    df_utilisateurs = pd.read_csv("./data/utilisateurs.csv")
+    df_notes = df_notes_launch.copy()
+
+    df_utilisateurs[df_utilisateurs["UserId"]==watched.userId] = watched.movieId
+
+    timestamp = time.time()
+
+    d = {'userId': [watched.userId], 'movieId': [watched.movieId], 'rating':[watched.rating], "timestamp":[timestamp]}
+    df_note = pd.dataframe(data=d)
+
+    df_notes = pd.concat([df_notes, df_note], ignore_index=True)
+
+    df_utilisateurs.to_csv("./data/utilisateurs.csv", index=False)
+    df_notes.to_csv("./data/notes.csv", index=False)
+
+    return "youpi"
+
+
 if __name__ == "__main__":
     mat_sim = load_CBF_similarity_matrix()
+    df_notes_launch = pd.read_csv("./data/notes.csv")
     uvicorn.run("main:api", host="127.0.0.1", port=8000, log_level="info")
