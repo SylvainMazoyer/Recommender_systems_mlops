@@ -13,6 +13,7 @@ from src.models.load_CBF_similarity_matrix import load_CBF_similarity_matrix
 from src.models.predict_CBF_model import recommandations_CBF
 import logging 
 import pandas as pd
+import uvicorn
 
 '''logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
@@ -240,7 +241,7 @@ async def pred_rand_model():
 
 
 @api.get("/train/train_cbf")
-async def pred_rand_model():
+async def train_cbf():
     """
     Entraîne le modèle CBF, à relancer à chaque fois qu'un film est ajouté
 
@@ -260,8 +261,8 @@ async def pred_rand_model():
     return response
 
 
-@api.get("/train/load_sim_matrix")
-async def pred_rand_model():
+@api.get("/train/load_CBF_sim_matrix")
+async def load_CBF_sim_matrix():
     """
     Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement du streamlit
 
@@ -275,27 +276,43 @@ async def pred_rand_model():
 
     """    
 
-    load_CBF_similarity_matrix()
+    mat_sim = load_CBF_similarity_matrix()
     response = { "Similarity matrix loaded": "Done"}
     
     return response
 
 
+
 @api.get("/predict/predict_CBF_model")
-async def pred_rand_model():
+async def predict_CBF_model(user_data: CreateUser):
     """
     Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement du streamlit
 
     Args:
-        None
+        user : nom de l'utilisateur pour lequel on veut faire la prédiction 
 
     Returns:
         dictionnaire des 5 films les plus similaires au dernier film vu par l'utilisateur
 
     Raises:
 
-    """    
+    """
 
-    response = recommandations_CBF()
+    utilisateurs_path = "data/utilisateurs.csv"
+    films_path = './data/films.csv'
+    user = user_data.model_dump()
+    username = user["name"]
+
+    df = pd.read_csv(utilisateurs_path)
+    last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
+
+    df_films = pd.read_csv(films_path)
+    title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
+
+    response = recommandations_CBF(df_films, title, mat_sim, 10)
     
     return response
+
+if __name__ == "__main__":
+    mat_sim = load_CBF_similarity_matrix()
+    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info")
