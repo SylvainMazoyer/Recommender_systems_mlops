@@ -8,6 +8,7 @@ import json
 import sys
 sys.path.append('/home/ubuntu/projet/nov23_continu_mlops_recommandations')
 from src.models.random_model import random_recos
+from src.models.train_CBF_model import train_CBF_model
 import logging 
 import pandas as pd
 
@@ -234,3 +235,24 @@ async def pred_rand_model():
     results_json = results.to_json(orient="records")
 
     return results_json
+
+
+@api.get("/train/train_cbf")
+async def pred_rand_model():
+    """
+    Entraîne le modèle CBF, à relancer à chaque fois qu'un film est ajouté
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+
+    """    
+
+    train_CBF_model()
+    response = { "CBF model trained": "Done"}
+    
+    return response
