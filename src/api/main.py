@@ -315,4 +315,4 @@ async def predict_CBF_model(user_data: CreateUser):
 
 if __name__ == "__main__":
     mat_sim = load_CBF_similarity_matrix()
-    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info")
+    uvicorn.run("main:api", host="127.0.0.1", port=8000, log_level="info")
