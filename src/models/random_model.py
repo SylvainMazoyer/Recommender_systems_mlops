@@ -23,4 +23,6 @@ def random_recos():
 
     return df_reco
 
+"""print(random_recos())"""
+
 
