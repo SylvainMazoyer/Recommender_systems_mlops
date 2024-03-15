@@ -153,7 +153,7 @@ def create_user(user_data: CreateUser):
         une exception HTTP 401 Unauthorized est levée.
     """
     
-    file_path = "data/utilisateurs.csv"
+    file_path = "./data/utilisateurs.csv"
     new_user = user_data.model_dump()
 
     df = pd.read_csv(file_path) 
@@ -293,26 +293,31 @@ async def predict_CBF_model(user_data: CreateUser):
         user : nom de l'utilisateur pour lequel on veut faire la prédiction 
 
     Returns:
-        dictionnaire des 5 films les plus similaires au dernier film vu par l'utilisateur
+        df des 5 films les plus similaires au dernier film vu par l'utilisateur
 
     Raises:
 
     """
 
     utilisateurs_path = "data/utilisateurs.csv"
-    films_path = './data/films.csv'
+    
     user = user_data.model_dump()
     username = user["name"]
 
     df = pd.read_csv(utilisateurs_path)
     last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
 
-    df_films = pd.read_csv(films_path)
     title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
 
-    response = recommandations_CBF(df_films, title, mat_sim, 5)
+    results = recommandations_CBF(df_films, title, mat_sim, 5)  
+
+    logging.info('Accès API GET /predict/predict_CBF_model : %s', 
+                 results[["movieId", 'title']].to_json(orient="records"))
     
-    return response
+    results_json = results.to_json(orient="records")
+
+    return results_json
+
 
 class Watch_movie(BaseModel):
     userId: int
@@ -344,6 +349,7 @@ def user_activity(watched: Watch_movie):
 
 
 if __name__ == "__main__":
+    df_films = pd.read_csv("./data/films.csv")
     mat_sim = load_CBF_similarity_matrix()
     df_notes_launch = pd.read_csv("./data/notes.csv")
     uvicorn.run("main:api", host="127.0.0.1", port=8000, log_level="info")
