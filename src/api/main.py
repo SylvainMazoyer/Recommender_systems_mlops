@@ -340,7 +340,7 @@ def user_activity(watched: Watch_movie):
     df_utilisateurs.to_csv("./data/utilisateurs.csv", index=False)
     df_notes.to_csv("./data/notes.csv", index=False)
 
-    return "youpi"
+    return "Note added to base"
 
 
 if __name__ == "__main__":
