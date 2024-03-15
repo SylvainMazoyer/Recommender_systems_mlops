@@ -3,8 +3,8 @@
 CREATE TABLE films (
     movieId SERIAL PRIMARY KEY,
     title VARCHAR(100) UNIQUE NOT NULL,
-    genre VARCHAR(100) NOT NULL,
-    youtubeId VARCHAR(100) UNIQUE
+    genres VARCHAR(100) NOT NULL,
+    youtubeId VARCHAR(100)
 );
 
 CREATE TABLE utilisateurs (

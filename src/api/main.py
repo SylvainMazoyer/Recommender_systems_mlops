@@ -229,7 +229,7 @@ def user_activity(watched: Watch_movie):
                     (new_data['userId'],new_data['movieId'],new_data['rating'],time.time(),))
         conn.commit()
         cur.close()
-        response = {"message": "Note ajoutée"}
+        response = {"message": "Note ajoutee"}
 
     else :
         cur = conn.cursor()
@@ -239,6 +239,67 @@ def user_activity(watched: Watch_movie):
         cur.close()
         conn.close()
         response = {"message": "Note MAJ"}
+
+    return response
+
+
+
+
+class CreateMovie(BaseModel):
+    title: str
+    genres : Optional[str] = ''
+    youtubeId : Optional[str] = ''
+
+@api.post("/create-movie")
+def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
+    """
+    Crée un nouveau film dans le système.
+
+    Args:
+        movie_data (CreateMovie): Les données du film à créer.
+        user (str): Le nom d'utilisateur de l'administrateur.
+
+    Returns:
+        dict: Un message indiquant que le film a été créé avec succès, 
+        ainsi que les détails du film nouvellement créé.
+
+    Raises:
+        HTTPException: Si l'administrateur n'a pas les autorisations appropriées, 
+        une exception HTTP 401 Unauthorized est levée.
+    """
+
+    new_movie = movie_data.model_dump()
+
+    # Connexion à la base postgre
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
+    cur = conn.cursor()
+    cur.execute("SELECT movieId FROM films where title=%s", (new_movie['title'],))
+    rows = cur.fetchone()
+    cur.close()
+
+    if rows is None: 
+        cur = conn.cursor()
+        cur.execute("INSERT INTO films (title, genres, youtubeId) VALUES (%s, %s,%s)", 
+                    (new_movie['title'], new_movie['genres'], new_movie['youtubeId'],))
+        conn.commit()
+        cur.close()
+        response = {"message": "Film ajoute"}
+
+    else:
+        cur = conn.cursor()
+        cur.execute("UPDATE films SET genres = %s, youtubeId = %s WHERE movieId = %s", 
+                    (new_movie['genres'], new_movie['youtubeId'], rows[0],))
+        conn.commit()
+        cur.close()
+        conn.close()
+        response = {"message": "Film mis a jour"}
 
     return response
 

@@ -14,10 +14,12 @@ def run():
     response = requests.get("http://api_model_container:5000/").json()["message"]
     st.write("Test appel API : ",response)
     st.write(requests.get("http://api_model_container:5000/predict/rand_model").json())
-    response2 = requests.post("http://api_model_container:5000/create-user", json={'name': 'Charles'}).json()
+    response2 = requests.post("http://api_model_container:5000/create-user", json={'name': 'Jean-Charles'}).json()
     st.write("Test appel API create user : ", response2['message'], response2['userId'])
-    response3 = requests.post("http://api_model_container:5000/user_activity", json={'userId': '1', 'movieId':999990})
+    response3 = requests.post("http://api_model_container:5000/user_activity", json={'userId': '1', 'movieId':9999900})
     st.write(response3.content)
+    response4 = requests.post("http://api_model_container:5000/create-movie", json={'title': 'High School Musical 2', 'genres':'Comedie musicale'})
+    st.write(response4.content)
 
 
 
