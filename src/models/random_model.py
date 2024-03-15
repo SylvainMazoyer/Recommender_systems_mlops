@@ -3,11 +3,11 @@ import pandas as pd
 import random as rd
 
 def random_recos(): 
-    """retourne 5 films aléatoires de la liste movies.csv sous forme de dataframe"""
+    """retourne 5 films aléatoires de la liste films.csv sous forme de dataframe"""
 
 
     # Import du jeu de données sur les films
-    df_movies = pd.read_csv('./src/data/films.csv')
+    df_movies = pd.read_csv('./data/films.csv')
 
     # nombre de films disponibles dans movies.csv
     nb_movies = len(df_movies)
