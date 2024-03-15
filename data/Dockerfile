@@ -7,6 +7,7 @@ ENV POSTGRES_DB dataflix
 ADD films.csv /data/films.csv
 ADD utilisateurs.csv /data/utilisateurs.csv
 ADD notes.csv /data/notes.csv
+ADD admin.csv /data/admin.csv
 ADD init_data.sh init_data.sh
 ADD init.sql init.sql
 
