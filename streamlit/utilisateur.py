@@ -52,6 +52,8 @@ def run():
     if 'api_call_create_user' in st.session_state :
         if st.session_state['api_call_create_user'] == 'user already exists':
             print_reco('5 films aléatoires', 'predict/rand_model', username)
+            #print_reco('5 films aléatoires', 'predict/rand_model', username)
+            #print_reco("D'après ce que vous avez vu récemment", 'predict/predict_CBF_model', username)
 
         elif st.session_state['api_call_create_user'] == 'user created successfully' : 
             print_reco('5 films aléatoires', 'predict/rand_model', username)
