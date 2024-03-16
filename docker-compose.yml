@@ -6,16 +6,18 @@ services:
     networks:
       - bridge
   api:
-    image: api_model:v1
+    image: api_model:v7
     container_name: api_model_container
+    volumes:
+      - ./src/api:/logs
     networks:
       - bridge
     depends_on:
       - data
   streamlit:
-    image: streamlit_app:v1
+    image: streamlit_app:v4
     container_name: streamlit_container
-    networks:
+    networks: 
       - bridge
     depends_on:
       - api
