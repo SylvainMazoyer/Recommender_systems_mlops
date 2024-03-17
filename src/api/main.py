@@ -16,9 +16,9 @@ import pandas as pd
 import uvicorn
 import time
 
-'''logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
+logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
-'''
+
 api = FastAPI(
     title="Movie recommendation API",
     description="We will recommend the best movies for You",
@@ -220,7 +220,7 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
 
 
 @api.get("/predict/rand_model")
-async def pred_rand_model():
+async def pred_rand_model(user_data: CreateUser):
     """
     Renvoie 5 films aléatoires
 
@@ -234,8 +234,8 @@ async def pred_rand_model():
 
     """    
     results = random_recos()
-    logging.info('Accès API GET /predict/rand_model : %s', 
-                 results[["movieId", 'title']].to_json(orient="records"))
+    logging.info('%s : Accès API GET /predict/rand_model : %s', 
+                 user_data.model_dump()["name"], results[["movieId", 'title']].to_json(orient="records"))
     results_json = results.to_json(orient="records")
 
     return results_json
