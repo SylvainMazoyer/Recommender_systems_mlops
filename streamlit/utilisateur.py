@@ -10,7 +10,7 @@ def print_reco(titre, endpoint, username):
     my_grid = grid(1, 3, 2, vertical_align="center")
     my_grid.title(titre)
 
-    r = json.loads(requests.get(f"http://127.0.0.1:8000/{endpoint}").json())
+    r = json.loads(requests.get(f"http://127.0.0.1:8000/{endpoint}",data=json.dumps({"name":username})).json())
     for i in range(5) :
         with my_grid.expander(r[i]["title"], expanded=False):
             st.write("Genre : ", r[i]["genres"])
@@ -52,8 +52,7 @@ def run():
     if 'api_call_create_user' in st.session_state :
         if st.session_state['api_call_create_user'] == 'user already exists':
             print_reco('5 films aléatoires', 'predict/rand_model', username)
-            #print_reco('5 films aléatoires', 'predict/rand_model', username)
-            #print_reco("D'après ce que vous avez vu récemment", 'predict/predict_CBF_model', username)
+            print_reco("D'après ce que vous avez vu récemment", 'predict/predict_CBF_model', username)
 
         elif st.session_state['api_call_create_user'] == 'user created successfully' : 
             print_reco('5 films aléatoires', 'predict/rand_model', username)

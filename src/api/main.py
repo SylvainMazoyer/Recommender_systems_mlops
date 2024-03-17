@@ -298,17 +298,19 @@ async def predict_CBF_model(user_data: CreateUser):
     Raises:
 
     """
-
-    utilisateurs_path = "data/utilisateurs.csv"
     
     user = user_data.model_dump()
     username = user["name"]
 
+    utilisateurs_path = "data/utilisateurs.csv"
     df = pd.read_csv(utilisateurs_path)
     last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
 
+    films_path = "data/films.csv"
+    df_films = pd.read_csv(films_path)
     title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
 
+    mat_sim = load_CBF_similarity_matrix()
     results = recommandations_CBF(df_films, title, mat_sim, 5)  
 
     logging.info('Accès API GET /predict/predict_CBF_model : %s', 
