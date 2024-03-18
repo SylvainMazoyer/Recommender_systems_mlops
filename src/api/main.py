@@ -157,7 +157,8 @@ def create_user(user_data: CreateUser):
     new_user = user_data.model_dump()
 
     df = pd.read_csv(file_path) 
-    if len(df[df['name'] == new_user['name']])== 0: 
+
+    if len(df[df['name'] == new_user['name']]) == 0: 
         response = {"message": "user created successfully", "user": new_user}
         logging.info('%s : Accès API POST /create-user : user créé', new_user["name"])
     else :
@@ -306,21 +307,27 @@ async def predict_CBF_model(user_data: CreateUser):
     df = pd.read_csv(utilisateurs_path)
     df_user = df[df["name"] == username]["last_viewed"]
 
-    if df_user["last_viewed"].iloc[0] == "None":
-        results_json = json.dump({"Last viewed movie": "None"})
+    if len(df_user) != 0:
+        if df_user["last_viewed"].iloc[0] == "None":
+            results_json = json.dumps({"Last viewed movie": "None"})
+            logging.info('%s : Accès API GET /predict/predict_CBF_model: No avalaible prediction', username)
+
+        else:
+            last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
+            films_path = "data/films.csv"
+            df_films = pd.read_csv(films_path)
+            title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
+
+            mat_sim = load_CBF_similarity_matrix()
+            results = recommandations_CBF(df_films, title, mat_sim, 5)  
+
+            logging.info('Accès API GET /predict/predict_CBF_model : %s', 
+                        results[["movieId", 'title']].to_json(orient="records"))
+            
+            results_json = results.to_json(orient="records")                
     else:
-        last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
-        films_path = "data/films.csv"
-        df_films = pd.read_csv(films_path)
-        title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
-
-        mat_sim = load_CBF_similarity_matrix()
-        results = recommandations_CBF(df_films, title, mat_sim, 5)  
-
-        logging.info('Accès API GET /predict/predict_CBF_model : %s', 
-                    results[["movieId", 'title']].to_json(orient="records"))
-        
-        results_json = results.to_json(orient="records")
+        results_json = json.dumps({"Last viewed movie": "None"})
+        logging.info('Accès API GET /predict/predict_CBF_model: No avalaible prediction')
 
     return results_json
 
