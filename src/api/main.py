@@ -304,19 +304,23 @@ async def predict_CBF_model(user_data: CreateUser):
 
     utilisateurs_path = "data/utilisateurs.csv"
     df = pd.read_csv(utilisateurs_path)
-    last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
+    df_user = df[df["name"] == username]["last_viewed"]
 
-    films_path = "data/films.csv"
-    df_films = pd.read_csv(films_path)
-    title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
+    if df_user["last_viewed"].iloc[0] == "None":
+        results_json = json.dump({"Last viewed movie": "None"})
+    else:
+        last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
+        films_path = "data/films.csv"
+        df_films = pd.read_csv(films_path)
+        title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
 
-    mat_sim = load_CBF_similarity_matrix()
-    results = recommandations_CBF(df_films, title, mat_sim, 5)  
+        mat_sim = load_CBF_similarity_matrix()
+        results = recommandations_CBF(df_films, title, mat_sim, 5)  
 
-    logging.info('Accès API GET /predict/predict_CBF_model : %s', 
-                 results[["movieId", 'title']].to_json(orient="records"))
-    
-    results_json = results.to_json(orient="records")
+        logging.info('Accès API GET /predict/predict_CBF_model : %s', 
+                    results[["movieId", 'title']].to_json(orient="records"))
+        
+        results_json = results.to_json(orient="records")
 
     return results_json
 
