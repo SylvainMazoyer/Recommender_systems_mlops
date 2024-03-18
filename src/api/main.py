@@ -305,7 +305,8 @@ async def predict_CBF_model(user_data: CreateUser):
 
     utilisateurs_path = "data/utilisateurs.csv"
     df = pd.read_csv(utilisateurs_path)
-    df_user = df[df["name"] == username]["last_viewed"]
+    
+    df_user = df[df["name"] == username]
 
     if len(df_user) != 0:
         if df_user["last_viewed"].iloc[0] == "None":
