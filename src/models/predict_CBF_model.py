@@ -1,14 +1,10 @@
 import pandas as pd
 import numpy as np
 
-def recommandations_CBF(titre, mat_sim, num_recommendations = 10):
-
-        # Import du jeu de données sur les films pour les titres
-    df = pd.read_csv('./data/films.csv')
+def recommandations_CBF(df_films, titre, mat_sim, num_recommendations = 10):
 
         #  Créer une série d'indices en utilisant la colonne 'title' comme index
-    indices = pd.Series(range(0,len(df)), index=df['title'])
-
+    indices = pd.Series(range(0,len(df_films)), index=df_films['title'])
 
         # On récupère l'indice associé au titre qui servira à identifier le livre dans la matrice de similarité
     idx = indices[titre]
@@ -28,9 +24,13 @@ def recommandations_CBF(titre, mat_sim, num_recommendations = 10):
         # Renvoyer les titres des films les plus similaires
     recommended_movies = [indices.index[idx] for idx, score in top_similair]
 
-    return recommended_movies
+    #print(recommended_movies)
 
-titre = "Toy Story (1995)"
-mat_sim = np.loadtxt("./data/sim_cos_CBF.txt")
+    results = df_films[df_films["title"] == recommended_movies[0]]
 
-print(recommandations_CBF(titre, mat_sim, 5))
+    for title in recommended_movies[1: len(recommended_movies)]:
+
+        df_tmp = df_films[df_films["title"] == title]
+        results = pd.concat([results, df_tmp], ignore_index=True)
+
+    return results
