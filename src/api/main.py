@@ -269,7 +269,7 @@ async def train_cbf():
 @api.get("/train/load_CBF_sim_matrix")
 async def load_CBF_sim_matrix():
     """
-    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement du streamlit
+    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement de l'api
 
     Args:
         None
@@ -291,7 +291,8 @@ async def load_CBF_sim_matrix():
 @api.get("/predict/predict_CBF_model")
 async def predict_CBF_model(user_data: CreateUser):
     """
-    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement du streamlit
+    Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur si celui-ci était déjà présent en base,
+    et qu'il a déjà regardé un film. La méthode employé est le filtrage par contenu.
 
     Args:
         user : nom de l'utilisateur pour lequel on veut faire la prédiction 
@@ -337,9 +338,10 @@ class Watch_movie(BaseModel):
 
 @api.post("/user_activity")
 def user_activity(watched: Watch_movie):
-    """ récupère l'activité d'un utilisateur lorsque celui-ci clique sur le trailer d'un film 
+    """ récupère l'activité d'un utilisateur lorsque celui-ci regarde un film dans le streamlit
     - met à jour à jour la table utilisateurs avec l'id du film en question comme dernier film regardé
-    - met à jour la table notes avec une note de 3 pour le film regardé"""
+    - met à jour la table notes avec une note de 3 par défaut pour le film regardé
+    - dans le cas de la notation d'un film, fait de même dans la table note avec la note choisie"""
 
     df_notes = df_notes_launch.copy()
 
