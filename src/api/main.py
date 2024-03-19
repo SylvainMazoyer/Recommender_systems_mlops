@@ -28,6 +28,12 @@ security = HTTPBasic()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+# chargement des données nécessaires au lancement pour accélérer le processus par la suite :
+df_films = pd.read_csv("./data/films.csv")
+mat_sim = load_CBF_similarity_matrix()
+df_notes_launch = pd.read_csv("./data/notes.csv")
+df_utilisateurs = pd.read_csv("./data/utilisateurs.csv")
+
 def get_admins_from_file(file_path):
     with open(file_path, "r") as file:
         admins = json.load(file)
@@ -156,9 +162,9 @@ def create_user(user_data: CreateUser):
     file_path = "./data/utilisateurs.csv"
     new_user = user_data.model_dump()
 
-    df = pd.read_csv(file_path) 
+    #df = pd.read_csv(file_path) 
 
-    if len(df[df['name'] == new_user['name']]) == 0: 
+    if len(df_utilisateurs[df_utilisateurs['name'] == new_user['name']]) == 0: 
         response = {"message": "user created successfully", "user": new_user}
         logging.info('%s : Accès API POST /create-user : user créé', new_user["name"])
     else :
@@ -304,9 +310,9 @@ async def predict_CBF_model(user_data: CreateUser):
     username = user["name"]
 
     utilisateurs_path = "data/utilisateurs.csv"
-    df = pd.read_csv(utilisateurs_path)
-    
-    df_user = df[df["name"] == username]
+    #df = pd.read_csv(utilisateurs_path)
+
+    df_user = df_utilisateurs[df_utilisateurs["name"] == username]
 
     if len(df_user) != 0:
         if df_user["last_viewed"].iloc[0] == "None":
@@ -314,12 +320,12 @@ async def predict_CBF_model(user_data: CreateUser):
             logging.info('%s : Accès API GET /predict/predict_CBF_model: No avalaible prediction', username)
 
         else:
-            last_viewed = int(df[df["name"] == username]["last_viewed"].iloc[0])
+            last_viewed = int(df_utilisateurs[df_utilisateurs["name"] == username]["last_viewed"].iloc[0])
             films_path = "data/films.csv"
-            df_films = pd.read_csv(films_path)
+            #df_films = pd.read_csv(films_path)
             title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
 
-            mat_sim = load_CBF_similarity_matrix()
+            #mat_sim = load_CBF_similarity_matrix()
             results = recommandations_CBF(df_films, title, mat_sim, 5)  
 
             logging.info('Accès API GET /predict/predict_CBF_model : %s', 
@@ -344,7 +350,7 @@ def user_activity(watched: Watch_movie):
     - met à jour à jour la table utilisateurs avec l'id du film en question comme dernier film regardé
     - met à jour la table notes avec une note de 3 pour le film regardé"""
 
-    df_utilisateurs = pd.read_csv("./data/utilisateurs.csv")
+    #df_utilisateurs = pd.read_csv("./data/utilisateurs.csv")
     df_notes = df_notes_launch.copy()
 
     df_utilisateurs[df_utilisateurs["UserId"]==watched.userId] = watched.movieId
@@ -363,7 +369,5 @@ def user_activity(watched: Watch_movie):
 
 
 if __name__ == "__main__":
-    df_films = pd.read_csv("./data/films.csv")
-    mat_sim = load_CBF_similarity_matrix()
-    df_notes_launch = pd.read_csv("./data/notes.csv")
     uvicorn.run("main:api", host="127.0.0.1", port=8000, log_level="info")
+
