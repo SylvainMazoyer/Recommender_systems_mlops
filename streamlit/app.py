@@ -1,40 +1,34 @@
+from collections import OrderedDict
 import streamlit as st
-import requests
-import base64
-from requests.auth import HTTPBasicAuth
-
-def api_call_admin(username,password,role):
-    str_to_encode = username + ':' + password
-    encoded_str = "Basic " + base64.b64encode(str_to_encode.encode()).decode()
-    response = requests.get(f'http://api_model_container:5000/admin/{role}', 
-                        headers={"Authorization": encoded_str})
-    st.write(response.content)
-
-def run():   
-
-    response = requests.get("http://api_model_container:5000/").json()["message"]
-    st.write("Test appel API : ",response)
-    st.write(requests.get("http://api_model_container:5000/predict/rand_model").json())
-    response2 = requests.post("http://api_model_container:5000/create-user", json={'name': 'Charles'}).json()
-    st.write("Test appel API create user : ", response2['message'], response2['userId'])
-    response3 = requests.post("http://api_model_container:5000/user_activity", json={'userId': '1', 'movieId':9999900})
-    st.write(response3.content)
-    response3bis = requests.post("http://api_model_container:5000/user_activity", json={'userId': '1', 'movieId':5})
-    st.write(response3bis.content)
-    response4 = requests.post("http://api_model_container:5000/create-movie", json={'title': 'Lalalala', 'genres':'Comedy'},auth=("Nolwenn", "54321"))
-    st.write(response4.content)
-    response4bis = requests.post("http://api_model_container:5000/create-movie", json={'title': 'Toy Story (1995)', 'genres':'Comedy'},auth=("Nolwenn","54321"))
-    st.write(response4bis.content)
+import admin, utilisateur
 
 
-
-    form = st.form(key='my-form')
-    username = form.text_input('Enter your name')
-    password = form.text_input('Enter your password')
-    role = form.text_input('Enter your role')
-    submit = form.form_submit_button('Submit', on_click=api_call_admin, args=(username,password,role))
+st.set_page_config(
+    page_title='Dataflix',
+    page_icon="https://datascientest.com/wp-content/uploads/2020/08/new-logo.png",
+)
 
 
+TABS = OrderedDict(
+    [
+        (utilisateur.sidebar_name, utilisateur),
+        (admin.sidebar_name, admin),
+    ]
+)
+
+def run():
+    st.sidebar.image(
+        "https://dst-studio-template.s3.eu-west-3.amazonaws.com/logo-datascientest.png",
+        width=200,
+    )
+    #st.title("Projet de recommandation des films")
+    st.sidebar.title("Sommaire")
+
+    page_name = st.sidebar.radio("allez vers", TABS.keys(),label_visibility='collapsed')
+    st.sidebar.markdown("---")
+    
+    tab = TABS[page_name]
+    tab.run()
 
 
 if __name__ == "__main__":

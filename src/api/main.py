@@ -2,6 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import uvicorn
 from random_model import random_recos
+from train_CBF_model import train_CBF_model
+from load_CBF_similarity_matrix import load_CBF_similarity_matrix
+from predict_CBF_model import recommandations_CBF
 from pydantic import BaseModel
 import pandas as pd
 import psycopg2
@@ -15,6 +18,10 @@ logging.basicConfig(filename='logs/API_log.log', encoding='utf-8', level=logging
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 
+
+                    
+
+
 api = FastAPI(
     title="Movie recommendation API",
     description="We will recommend the best movies for You",
@@ -24,6 +31,10 @@ api = FastAPI(
 def read_root():
     return {"message": "API is functional"}
 
+
+  
+# chargement des données nécessaires au lancement pour accélérer le processus par la suite :
+mat_sim = load_CBF_similarity_matrix()
 
 
 security = HTTPBasic()
@@ -79,6 +90,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     # si le username n'est pas présent dans la table admin, on lève une erreur       
     else:
         logging.info('%s : ERREUR 401 : Accès admin non autorisé', credentials.username)
+
         raise HTTPException(
                                 status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Utilisateur inconnu",
@@ -118,6 +130,7 @@ async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)
                     )
     logging.info('%s : Accès admin autorisé', username)
     return {"message": f"Hello {username}, you have access to secure data"}
+
 
 
 
@@ -172,7 +185,6 @@ def create_user(user_data: CreateUser):
         cur = conn.cursor()
         cur.execute("SELECT userId FROM utilisateurs where name_user = %s", (new_user['name'],))
         rows = cur.fetchone()
-
         
         response = {"message": "user created successfully", "userId": rows[0]}
         logging.info('%s : Accès API POST /create-user : user créé', rows[0])
@@ -260,6 +272,7 @@ def user_activity(watched: Watch_movie):
         conn.close()
         response = {"message": "Note MAJ"}
 
+
     return response
 
 
@@ -329,6 +342,93 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
 
 
 
+  
+@api.get("/train/train_cbf")
+async def train_cbf():
+    """
+    Entraîne le modèle CBF, à relancer à chaque fois qu'un film est ajouté
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+
+    """    
+
+    train_CBF_model()
+    response = { "CBF model trained": "Done"}
+
+    return response
+
+
+@api.get("/train/load_CBF_sim_matrix")
+async def load_CBF_sim_matrix():
+    """
+    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement de l'api
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+
+    """    
+
+    mat_sim = load_CBF_similarity_matrix()
+    response = { "Similarity matrix loaded": "Done"}
+    
+    return response
+
+
+
+# réécrire pour aller chercher les données dans la base et non dans les fichiers
+@api.get("/predict/predict_CBF_model")
+async def predict_CBF_model(user_data: CreateUser):
+    """
+    Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur si celui-ci était déjà présent en base,
+    et qu'il a déjà regardé un film. La méthode employé est le filtrage par contenu.
+
+    Args:
+        user : nom de l'utilisateur pour lequel on veut faire la prédiction 
+
+    Returns:
+        df des 5 films les plus similaires au dernier film vu par l'utilisateur
+
+    Raises:
+
+    """
+    
+    user = user_data.model_dump()
+    username = user["name"]
+
+    df_user = df_utilisateurs[df_utilisateurs["name"] == username]
+
+    if len(df_user) != 0:
+        if df_user["last_viewed"].iloc[0] == "None":
+            results_json = json.dumps({"Last viewed movie": "None"})
+            logging.info('%s : Accès API GET /predict/predict_CBF_model: No avalaible prediction', username)
+
+        else:
+            last_viewed = int(df_utilisateurs[df_utilisateurs["name"] == username]["last_viewed"].iloc[0])
+            title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
+
+            results = recommandations_CBF(df_films, title, mat_sim, 5)  
+
+            logging.info('Accès API GET /predict/predict_CBF_model : %s', 
+                        results[["movieId", 'title']].to_json(orient="records"))
+            
+            results_json = results.to_json(orient="records")                
+    else:
+        results_json = json.dumps({"Last viewed movie": "None"})
+        logging.info('Accès API GET /predict/predict_CBF_model: No avalaible prediction')
+
+    return results_json
+
+
 if __name__ == '__main__':
     uvicorn.run(api, host='0.0.0.0', port=5000)
-

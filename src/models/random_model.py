@@ -5,8 +5,8 @@ import psycopg2
 
 
 def random_recos(): 
-    """retourne 5 films aléatoires de la liste movies.csv sous forme de dataframe"""
-
+    """retourne 5 films aléatoires de la liste films.csv sous forme de dataframe"""
+    
     conn = psycopg2.connect(
         dbname='dataflix',
         user='postgres',
@@ -23,5 +23,8 @@ def random_recos():
     conn.close()
     
     return df
+
+
+"""print(random_recos())"""
 
 
