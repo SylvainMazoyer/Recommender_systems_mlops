@@ -12,6 +12,7 @@ from typing import Optional
 from passlib.context import CryptContext
 import time
 import logging 
+import json
 
 # Configuration du logging
 logging.basicConfig(filename='logs/API_log.log', encoding='utf-8', level=logging.INFO,
@@ -34,7 +35,23 @@ def read_root():
 
   
 # chargement des données nécessaires au lancement pour accélérer le processus par la suite :
+train_CBF_model()
 mat_sim = load_CBF_similarity_matrix()
+
+conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
+cur = conn.cursor()
+cur.execute("SELECT * FROM films")
+rows = cur.fetchall()
+df_films = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
+cur.close()
+conn.close()
 
 
 security = HTTPBasic()
@@ -200,8 +217,12 @@ def create_user(user_data: CreateUser):
     return response
 
 
+class User_data(BaseModel):
+    name: str
+    id:int
+
 @api.get("/predict/rand_model")
-async def pred_rand_model():
+async def pred_rand_model(user_data: User_data):
     """
     Renvoie 5 films aléatoires
 
@@ -215,7 +236,7 @@ async def pred_rand_model():
 
     """    
     results = random_recos()
-    logging.info('Accès API GET /predict/rand_model : %s')
+    logging.info('Accès API GET /predict/rand_model : %s',user_data.model_dump()["id"])
     results_json = results.to_json(orient="records")
     return results_json
 
@@ -388,7 +409,7 @@ async def load_CBF_sim_matrix():
 
 # réécrire pour aller chercher les données dans la base et non dans les fichiers
 @api.get("/predict/predict_CBF_model")
-async def predict_CBF_model(user_data: CreateUser):
+async def predict_CBF_model(user_data: User_data):
     """
     Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur si celui-ci était déjà présent en base,
     et qu'il a déjà regardé un film. La méthode employé est le filtrage par contenu.
@@ -404,28 +425,33 @@ async def predict_CBF_model(user_data: CreateUser):
     """
     
     user = user_data.model_dump()
-    username = user["name"]
+    userid = user["id"]
 
-    df_user = df_utilisateurs[df_utilisateurs["name"] == username]
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
 
-    if len(df_user) != 0:
-        if df_user["last_viewed"].iloc[0] == "None":
-            results_json = json.dumps({"Last viewed movie": "None"})
-            logging.info('%s : Accès API GET /predict/predict_CBF_model: No avalaible prediction', username)
+    # Identification du dernier film vu
+    cur = conn.cursor()
+    cur.execute("SELECT t1.userId, t1.last_viewed, t2.title FROM utilisateurs as t1 left join films as t2 on t1.last_viewed=t2.movieId WHERE t1.userId = %s and t1.last_viewed is not null", (userid,))
+    last_movie = cur.fetchone()
+    cur.close()
 
-        else:
-            last_viewed = int(df_utilisateurs[df_utilisateurs["name"] == username]["last_viewed"].iloc[0])
-            title = df_films[df_films["movieId"] == last_viewed]["title"].iloc[0]
+    if last_movie is not None:
+        results = recommandations_CBF(df_films, user["title"], mat_sim, 5)  
 
-            results = recommandations_CBF(df_films, title, mat_sim, 5)  
-
-            logging.info('Accès API GET /predict/predict_CBF_model : %s', 
-                        results[["movieId", 'title']].to_json(orient="records"))
+        logging.info('%s : Accès API GET /predict/predict_CBF_model : %s', 
+                        (user["userId"],results[["movieId", 'title']].to_json(orient="records"),))
             
-            results_json = results.to_json(orient="records")                
-    else:
+        results_json = results.to_json(orient="records")   
+
+    else :
         results_json = json.dumps({"Last viewed movie": "None"})
-        logging.info('Accès API GET /predict/predict_CBF_model: No avalaible prediction')
+        logging.info('%s : Accès API GET /predict/predict_CBF_model: No available prediction', userid)
 
     return results_json
 

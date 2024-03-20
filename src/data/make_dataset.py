@@ -22,7 +22,7 @@ list_movies_slct = df_ratings_slct.to_list()
 df_ratings_3000 = df_ratings[df_ratings["movieId"].isin(list_movies_slct)]
 
 # Enregistrement de cette table 
-df_ratings_3000.to_csv('./data/notes.csv', index=False)
+df_ratings_3000.to_csv('./data/notes.csv', index=True)
 
 """ création de la table films.csv sur la base de movies.csv et en ajoutant les liens youtube"""
 
