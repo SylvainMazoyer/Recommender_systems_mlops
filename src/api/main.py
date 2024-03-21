@@ -236,7 +236,7 @@ async def pred_rand_model(user_data: User_data):
 
     """    
     results = random_recos()
-    logging.info('Accès API GET /predict/rand_model : %s',user_data.model_dump()["id"])
+    logging.info('%s : Accès API GET /predict/rand_model',user_data.model_dump()["id"])
     results_json = results.to_json(orient="records")
     return results_json
 
@@ -437,15 +437,14 @@ async def predict_CBF_model(user_data: User_data):
 
     # Identification du dernier film vu
     cur = conn.cursor()
-    cur.execute("SELECT t1.userId, t1.last_viewed, t2.title FROM utilisateurs as t1 left join films as t2 on t1.last_viewed=t2.movieId WHERE t1.userId = %s and t1.last_viewed is not null", (userid,))
-    last_movie = cur.fetchone()
+    cur.execute("SELECT t2.title FROM utilisateurs as t1 left join films as t2 on t1.last_viewed=t2.movieId WHERE t1.userId = %s and t1.last_viewed is not null", (userid,))
+    req_title = cur.fetchone()
     cur.close()
 
-    if last_movie is not None:
-        results = recommandations_CBF(df_films, user["title"], mat_sim, 5)  
+    if req_title is not None:
+        results = recommandations_CBF(df_films,req_title[0], mat_sim, 5)  
 
-        logging.info('%s : Accès API GET /predict/predict_CBF_model : %s', 
-                        (user["userId"],results[["movieId", 'title']].to_json(orient="records"),))
+        logging.info('%s : Accès API GET /predict/predict_CBF_model', userid)
             
         results_json = results.to_json(orient="records")   
 

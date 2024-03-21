@@ -5,16 +5,8 @@ from streamlit_extras.grid import grid
 
 sidebar_name = "Utilisateur"
 
-def api_call_admin(username,password,role):
-    str_to_encode = username + ':' + password
-    encoded_str = "Basic " + base64.b64encode(str_to_encode.encode()).decode()
-    response = requests.get(f'http://api_model_container:5000/admin/{role}', 
-                        headers={"Authorization": encoded_str})
-    st.write(response.content)
-
 # Simule la visualisation d'un film
 def click_movie(movie_id,userid):
-    st.write("début click_movie")
     requests.post("http://api_model_container:5000/user_activity", 
                         json={"userId":str(userid), "movieId":movie_id})
     
@@ -29,7 +21,7 @@ def click_note(movie_id,userid):
 # Affichage des 5 films recommandés via la méthode corresondant au endpoint fourni
 def print_reco(titre, endpoint, username, userId, session):
 
-    if st.session_state["new_reco"]==True:
+    if (st.session_state["new_reco_alea"]==True and session=="rand_model") or (st.session_state["new_reco_cbf"]==True and session=="CBF_model") :
         st.session_state[session]  = json.loads(requests.get(f"http://api_model_container:5000/{endpoint}",json={"name": username, "id": userId}).json())
 
     if st.session_state[session] == {"Last viewed movie": "None"}:
@@ -62,14 +54,20 @@ def run():
     username = st.text_input('Enter your username')
     api_call_create_user(username)
 
-    if "new_reco" not in st.session_state : 
-        st.session_state["new_reco"] = True
+    if "new_reco_alea" not in st.session_state : 
+        st.session_state["new_reco_alea"] = True
+
+    if "new_reco_cbf" not in st.session_state : 
+        st.session_state["new_reco_cbf"] = True
 
     if "rand_model" not in st.session_state:
         st.session_state["rand_model"] = None
 
     if "CBF_model" not in st.session_state:
         st.session_state["CBF_model"] = None
+
+    if st.button('Nouvelles recommandations aléatoires'):
+        st.session_state["new_reco_alea"] = True
 
     # Ajouter un bouton pour regénérer des reco et sinon les mêmes sont conservées
     
