@@ -16,13 +16,13 @@ def api_call_admin(username,password,role):
 def click_movie(movie_id,userid):
     st.write("début click_movie")
     requests.post("http://api_model_container:5000/user_activity", 
-                        json={"userId":userid, "movieId":movie_id})
+                        json={"userId":str(userid), "movieId":movie_id})
     
 
 # Ajout d'une note à un film
 def click_note(movie_id,userid):
     requests.post("http://api_model_container:5000/user_activity", 
-                        json={"userId":userid, "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]})
+                        json={"userId":str(userid), "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]})
     
 
 
