@@ -1,11 +1,14 @@
-Project Name
+# DataFlix
 ==============================
 
 Ce projet est une ébauche d'un projet d'APi de moteur de recommandation de films à destination d'une plateforme de streaming. Il a été effectué dans le cadre de la formation MLOps de DataScientest, cohorte Nov23.
 
 ## Objectifs :
 
-L'objectif de ce projet est de mettre en place une APi proposant des recommandations personnalisées de films pour les utilisateurs d'une plateforme de streaming, grâce à des modèles de Machine Learning.
+L'objectif de ce projet est de mettre en place une API proposant des recommandations personnalisées de films pour les utilisateurs d'une plateforme de streaming, grâce à des modèles de Machine Learning.
+Cette API doit pouvoir être accessible depuis un dashboard externe et accéder à une base de données SQL. Elle doit pouvoir faire appel à un ou plusieurs modèles de recommandation.
+En outre, l'ensemble doit être conteneurisé (API et BDD à part, éventuellement dashboard simulant la plateforme de streaming à part aussi).
+L'intégration continue doit pouvoir se faire et des tests unitaires doivent être implémentés.
 
 ## Données d'origine :
 
