@@ -54,8 +54,8 @@ Project Organization (A METTRE A JOUR)
 
 ### Etapes : 
 - Création des images
-- Lancement du docker-compose
 - Initialisation de la base de données
+- Lancement du docker-compose
 
 ##### *Création des images* :
 3 images sont à créer à l'aide des Dockerfile : 
@@ -63,13 +63,14 @@ Project Organization (A METTRE A JOUR)
 - une image **api_model** pour l'API et le modèle de recommandation
 - une image **streamlit_app** pour l'IHM streamlit
 
+##### *Initialisation de la base de données :*
+Créer un container à partir de l'image **data**, la base de donnée est créée avec les différentes tables mais elles sont toutes vides. 
+Pour les initialiser avec les fichiers sources, il faut se placer dans le conteneur et exécuter le fichier init_data.sh. 
+
 ##### *Lancement du docker-compose :*
 Avec docker-compose up, on crée les 3 conteneurs associés aux 3 images. 
 Il faut bien faire attention à ce que les noms des images dans le fichier docker-compose.yml correspondent bien aux noms et versions des images créées en local 
 
-##### *Initialisation de la base de données :*
-Lors de la création du conteneur, la base de donnée est créée avec les différentes tables mais elles sont toutes vides. 
-Pour les initialiser avec les fichiers sources, il faut se placer dans le conteneur **data_container** à l'aide de la commande **docker exec -it data_container bash** et exécuter le fichier init_data.sh. 
 
 
 
