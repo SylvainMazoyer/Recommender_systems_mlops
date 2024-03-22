@@ -1,7 +1,7 @@
 Project Name
 ==============================
 
-This project is a starting Pack for MLOps projects based on the subject "movie_recommandation". It's not perfect so feel free to make some modifications on it.
+Ce projet est une ébauche d'un projet d'APi de moteur de recommandation de films à destination d'une plateforme de streaming. Il a été effectué dans le cadre de la formation MLOps de DataScientest, cohorte Nov23.
 
 Project Organization (A METTRE A JOUR)
 ------------
