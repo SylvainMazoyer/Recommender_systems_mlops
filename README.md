@@ -3,6 +3,18 @@ Project Name
 
 Ce projet est une ébauche d'un projet d'APi de moteur de recommandation de films à destination d'une plateforme de streaming. Il a été effectué dans le cadre de la formation MLOps de DataScientest, cohorte Nov23.
 
+## Objectifs :
+
+L'objectif de ce projet est de mettre en place une APi proposant des recommandations personnalisées de films pour les utilisateurs d'une plateforme de streaming, grâce à des modèles de Machine Learning.
+
+## Données d'origine :
+
+Dans le cadre de ce projet, nous nous sommes servi du dataset **MovieLens20M**, disponible à l'adresse *https://grouplens.org/datasets/movielens/20m/*. 
+Ce dataset contient les notes attribuées par près de 138 000 utilisateurs à environ 27 000 films dans un fichier intitulé **ratings.csv**.
+Il contient aussi une table,**movies.csv**, des films avec pour chaque film leur titre, l'année de sortie et ses genres. 
+Cette table peut être croisée avec une table, **links.csv** disponible à l'adresse *https://grouplens.org/datasets/movielens/20m-youtube/* et qui contient les liens youtube vers les trailers des films quand disponible.
+
+
 Project Organization (A METTRE A JOUR)
 ------------
 
