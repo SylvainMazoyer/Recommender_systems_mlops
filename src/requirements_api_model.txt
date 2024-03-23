@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+psycopg2-binary
+typing
+passlib[bcrypt]
+pydantic
+scikit-learn
+numpy

@@ -2,11 +2,26 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import psycopg2
+
 
 
 def train_CBF_model():
-    # Import du jeu de données sur les films dans le répertoire data à la racine du projet
-    df = pd.read_csv('./data/films.csv')
+    # Import du jeu de données sur les films
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM films")
+    rows = cur.fetchall()
+    df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
+    cur.close()
+    conn.close()
 
     # formattage de la colonne genre
     df['Genres'] = df['genres'].apply(lambda x: ' '.join(x.split('|')))
@@ -27,5 +42,5 @@ def train_CBF_model():
     sim_cosinus = sim_cosinus.astype('float16')
 
     # enregistrement dans un fichier
-    np.savetxt("./data/sim_cos_CBF.txt", sim_cosinus)
+    np.savetxt("./sim_cos_CBF.txt", sim_cosinus)
 

@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  data:
+    image: data:v1
+    container_name: data_container
+    networks:
+      - bridge
+  api:
+    image: api_model:v14
+    container_name: api_model_container
+    volumes:
+      - ./src/api:/logs
+    networks:
+      - bridge
+    depends_on:
+      - data
+  streamlit:
+    image: streamlit_app:v19
+    container_name: streamlit_container
+    networks: 
+      - bridge
+    depends_on:
+      - api
+      - data
+    ports:
+      - 8501:8501
+networks:
+  bridge:
+
+
+
