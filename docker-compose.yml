@@ -1,12 +1,12 @@
 version: "3.9"
 services:
   data:
-    image: data:v1
+    image: data:latest
     container_name: data_container
     networks:
       - bridge
   api:
-    image: api_model:v14
+    image: api_model:latest
     container_name: api_model_container
     volumes:
       - ./src/api:/logs
@@ -15,7 +15,7 @@ services:
     depends_on:
       - data
   streamlit:
-    image: streamlit_app:v19
+    image: streamlit_app:latest
     container_name: streamlit_container
     networks: 
       - bridge
