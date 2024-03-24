@@ -19,9 +19,37 @@ logging.basicConfig(filename='logs/API_log.log', encoding='utf-8', level=logging
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 
+def wait_for_postgres(host, port, user, password, database, max_retries=10, retry_interval=5):
+    retries = 0
+    while retries < max_retries:
+        try:
+            conn = psycopg2.connect(
+                host=host,
+                port=port,
+                user=user,
+                password=password,
+                database=database
+            )
+            conn.close()
+            print("PostgreSQL database is ready.")
+            return
+        except psycopg2.OperationalError as e:
+            print(f"Connection to PostgreSQL failed: {e}")
+            retries += 1
+            time.sleep(retry_interval)
+    
+    raise Exception("Unable to connect to PostgreSQL database after multiple attempts.")
 
+# 
+wait_for_postgres(
+    host='data_container',
+    port=5432,
+    user='postgres',
+    password='dataflix',
+    database='dataflix'
+)
                     
-
+# L'API ne se lane que si la base postgresql est disponible
 
 api = FastAPI(
     title="Movie recommendation API",

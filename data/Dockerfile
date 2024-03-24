@@ -14,6 +14,6 @@ ADD init.sql init.sql
 EXPOSE 5432
 
 RUN chmod +x /init_data.sh && \
-    cp init.sql /docker-entrypoint-initdb.d/
+    cp init_data.sh /docker-entrypoint-initdb.d/
 
 
