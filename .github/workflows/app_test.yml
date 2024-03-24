@@ -39,10 +39,7 @@ jobs:
   
         - name: Build and run containers
           run: |
-            docker-compose up
-
-        - name: Tests manuels
-          run: | 
+            docker-compose up -d
             docker container ps -a
 
         #- name: Run Pytest tests inside the container
