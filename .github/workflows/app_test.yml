@@ -39,7 +39,7 @@ jobs:
   
         - name: Build and run containers
           run: |
-            docker-compose -f "docker-compose.yml"
+            docker-compose up
 
         - name: Tests manuels
           run: | 
