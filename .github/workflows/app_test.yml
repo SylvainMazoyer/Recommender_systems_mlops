@@ -42,6 +42,6 @@ jobs:
             docker-compose up -d
             docker container ps -a
 
-        #- name: Run Pytest tests inside the container
-        #  run: |
-        #    docker exec streamlit_container bash -c "pytest"
+        - name: Run Pytest tests inside the container
+          run: |
+            docker exec streamlit_container bash -c "pytest"
