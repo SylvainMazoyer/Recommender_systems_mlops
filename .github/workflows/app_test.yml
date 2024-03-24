@@ -1,0 +1,50 @@
+name: Application test
+
+on:
+  push:
+    branches: [ "master", "dev", "CI-with-Github-Actions_2" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        - name: Set up Python 3.10
+          uses: actions/setup-python@v3
+          with:
+            python-version: "3.10"
+
+        - name: Install Docker
+          run: |
+            sudo apt-get update
+            sudo apt-get remove containerd.io
+            sudo apt-get install -y docker.io
+            sudo apt-get install -y docker-compose
+
+        - name: Build the API Docker image
+          working-directory: /home/runner/work/nov23_continu_mlops_recommandations/nov23_continu_mlops_recommandations/src
+          run: docker build . --no-cache --file Dockerfile --tag api_model:latest
+
+        - name: Build the streamlit Docker image
+          working-directory: /home/runner/work/nov23_continu_mlops_recommandations/nov23_continu_mlops_recommandations/streamlit
+          run: docker build . --no-cache  --file Dockerfile --tag streamlit_app:latest
+
+        - name: Pull data Docker image and run it 
+          run: | 
+            docker pull docker.io/madigrg/data:latest
+  
+        - name: Build and run containers
+          run: |
+            docker-compose -f "docker-compose.yml"
+
+        - name: Tests manuels
+          run: | 
+            docker container ps -a
+
+        #- name: Run Pytest tests inside the container
+        #  run: |
+        #    docker exec streamlit_container bash -c "pytest"
