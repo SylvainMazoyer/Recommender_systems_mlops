@@ -41,6 +41,9 @@ jobs:
           run: |
             docker-compose up -d
             docker container ps -a
+        
+        - name: Wait for postgre to run
+          run: sleep 90
 
         - name: Run Pytest tests inside the container
           run: |
