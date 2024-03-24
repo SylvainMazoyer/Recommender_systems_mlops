@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 
 # Test du endpoint GET /
