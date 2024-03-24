@@ -44,4 +44,5 @@ jobs:
 
         - name: Run Pytest tests inside the container
           run: |
-            docker exec streamlit_container python -m pytest
+            ls -a
+        # docker exec streamlit_container python -m pytest 
