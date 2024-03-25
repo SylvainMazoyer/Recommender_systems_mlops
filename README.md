@@ -60,7 +60,7 @@ Project Organization (A METTRE A JOUR)
 
 ## Global architecture 
 
-![Global architecture](<a href="https://ibb.co/TP1z08d"><img src="https://i.ibb.co/bNFpvBD/Capture-d-cran-du-2024-03-25-16-21-42.png" alt="Capture-d-cran-du-2024-03-25-16-21-42" border="0"></a>)
+<a href="https://ibb.co/TP1z08d"><img src="https://i.ibb.co/7rQ7pWL/Capture-d-cran-du-2024-03-25-16-21-42.png" alt="Capture-d-cran-du-2024-03-25-16-21-42" border="0"></a>
 
 ## Dockerisation 
 
