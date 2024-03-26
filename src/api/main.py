@@ -157,6 +157,9 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 @api.get("/admin/{asked_role}")
 async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)):
     """
+
+    Mettre à jour
+
     Description:
     Cette route renvoie un message de bienvenue personnalisé en utilisant le nom d'utilisateur fourni en tant que dépendance.
 
@@ -269,7 +272,9 @@ async def pred_rand_model(user_data: User_data):
     Renvoie 5 films aléatoires parmis ceux présents dans la table films
 
     Args:
-        None
+        user_data (User_data):
+        - name: str
+        id: int
 
     Returns:
         json: 5 films aléatoires avec leur id, titre, leurs genres et leur trailer
