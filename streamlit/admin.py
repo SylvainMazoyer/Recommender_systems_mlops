@@ -17,6 +17,17 @@ def api_call_connect_admin(endpoint, username, password):
         st.error(f"Error: {e}")
         return None
 
+def api_call_entrainer_model():
+    entrainer = st.button('entrainer')
+    if entrainer :
+        try:
+            response = requests.get(f"http://127.0.0.1:8000/train/train_cbf").json()
+            return response
+        except Exception as e:
+            st.error(f"Error: {e}")
+            return None
+
+
 def api_call_create_movie(title, year, genres_list, username, password):
     try:
         payload = {
@@ -27,7 +38,6 @@ def api_call_create_movie(title, year, genres_list, username, password):
         response = requests.post("http://127.0.0.1:8000/create-movie",
                                  auth=(username, password),
                                  json=payload)
-        st.write('response')
         return response
     except Exception as e:
         st.error(f"Error: {e}")
@@ -53,34 +63,22 @@ def run_auth():
         st.write("### Authentication")
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
-        plateform_button = st.button("Login as Admin")
-        equipe_ds_button = st.button("Login as Data Scientist")
+        role = st.text_input("Role")
+        
+        login_button = st.button("Login")
 
-    if plateform_button:
-        if username and password:
-            response_admin = api_call_connect_admin("admin", username, password)
+    if login_button :
+        st.session_state.role = None
+        if role and (username and password):
+            response_admin = api_call_connect_admin(role, username, password)
             if response_admin and 'message' in response_admin:
                 st.success(response_admin['message'])
                 st.session_state.login = True
-                st.session_state.role = "plateforme"
-
+                st.session_state.role = role
             else:
-                st.error("Failed to authenticate as admin. Please check your credentials.")
+                st.error(f"Failed to authenticate as {role}. Please check your credentials.")
         else:
-            st.warning("Please provide both username and password for admin.")
-
-    if equipe_ds_button:
-        if username and password:
-            response_ds = api_call_connect_admin("equipe_ds", username, password)
-            if response_ds and 'message' in response_ds:
-                st.success(response_ds['message'])
-                st.session_state.login = True
-                st.session_state.role = "equipe_ds"
-            else:
-                st.error("Failed to authenticate as data scientist. Please check your credentials.")
-        else:
-            st.warning("Please provide both username and password for data scientist.")
-
+            st.warning("Please provide both username and password.")
     return username, password
 
 def call_action():
@@ -99,7 +97,7 @@ def run():
         selected_action = st.selectbox("Select Action", actions, 
                                        on_change=call_action
                                        )
-        if 'action' in st.session_state :
+        if st.session_state.action != None :
             st.session_state.action = selected_action
             if st.session_state.action == "Create Movie":
                 run_create_movie(username, password)
@@ -107,4 +105,13 @@ def run():
                 st.write("Action loading ...")        
 
     elif st.session_state.role == "equipe_ds":
-        st.write("Hello Data Scientist!")
+        actions = ["" ,"Create movie", "entrainer le model"]
+        selected_action = st.selectbox("Select Action", actions, 
+                                       on_change=call_action
+                                       )
+        if st.session_state.action != None :
+            st.session_state.action = selected_action
+            if st.session_state.action == "Create Movie":
+                run_create_movie(username, password)
+            elif st.session_state.action == "entrainer le model":
+                api_call_entrainer_model()

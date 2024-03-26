@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 import json
 import sys
-sys.path.append('/home/ubuntu/projet/nov23_continu_mlops_recommandations')
 from src.models.random_model import random_recos
 from src.models.train_CBF_model import train_CBF_model
 from src.models.load_CBF_similarity_matrix import load_CBF_similarity_matrix
@@ -16,7 +15,7 @@ import pandas as pd
 import uvicorn
 import time
 
-logging.basicConfig(filename='src/api/API_log.log', encoding='utf-8', level=logging.INFO,
+logging.basicConfig(filename='src/api/API_log.log', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 api = FastAPI(
@@ -27,6 +26,11 @@ api = FastAPI(
 security = HTTPBasic()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+train_CBF_model()
+df_films = pd.read_csv("./data/films.csv")
+
+mat_sim = load_CBF_similarity_matrix()
+df_notes_launch = pd.read_csv("./data/notes.csv")
 
 def get_admins_from_file(file_path):
     with open(file_path, "r") as file:
@@ -58,7 +62,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         HTTPException: Si les informations d'identification sont incorrectes,
         une exception HTTP 401 Unauthorized est levée.
     """
-    admins = get_admins_from_file("admins.json")
+    admins = get_admins_from_file("src/api/admins.json")
 
     username = credentials.username
     password = credentials.password
@@ -71,7 +75,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return username
 
-@api.get("/admin")
+@api.get("/plateforme")
 async def get_secure_data(username: str = Depends(verify_admin)):
     """
     Description:
@@ -107,7 +111,7 @@ def verify_equipe_ds(username: str = Depends(verify_admin)):
         HTTPException: Si l'administrateur n'est pas membre de l'équipe de data science, 
         une exception HTTP 403 Forbidden est levée.
     """
-    admins = get_admins_from_file("admins.json")
+    admins = get_admins_from_file("src/api/admins.json")
     if admins.get(username).get("role") != "equipe_ds":
         logging.info('%s : ERREUR 403 : Accès datascientist non autorisé', username)
         raise HTTPException(
@@ -189,7 +193,7 @@ def create_movie(movie_data: CreateMovie, user: str = Depends(verify_admin)):
         HTTPException: Si l'administrateur n'a pas les autorisations appropriées, 
         une exception HTTP 401 Unauthorized est levée.
     """
-    file_path = "/home/ubuntu/projet/nov23_continu_mlops_recommandations/data/films.csv"
+    file_path = "data/films.csv"
     response = {}
 
     new_movie = movie_data.model_dump()
@@ -239,7 +243,6 @@ async def pred_rand_model(user_data: CreateUser):
     results_json = results.to_json(orient="records")
 
     return results_json
-
 
 @api.get("/train/train_cbf")
 async def train_cbf():
