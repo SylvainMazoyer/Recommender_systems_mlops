@@ -260,6 +260,7 @@ async def train_cbf():
     """    
 
     train_CBF_model()
+    global mat_sim 
     mat_sim = load_CBF_similarity_matrix()
 
     response = { "CBF model trained": "Done"}
@@ -335,7 +336,4 @@ def user_activity(watched: Watch_movie):
 
 
 if __name__ == "__main__":
-    df_films = pd.read_csv("./data/films.csv")
-    mat_sim = load_CBF_similarity_matrix()
-    df_notes_launch = pd.read_csv("./data/notes.csv")
     uvicorn.run("main:api", host="127.0.0.1", port=8000, log_level="info")
