@@ -260,29 +260,10 @@ async def train_cbf():
     """    
 
     train_CBF_model()
+    mat_sim = load_CBF_similarity_matrix()
+
     response = { "CBF model trained": "Done"}
 
-    return response
-
-
-@api.get("/train/load_CBF_sim_matrix")
-async def load_CBF_sim_matrix():
-    """
-    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement du streamlit
-
-    Args:
-        None
-
-    Returns:
-        None
-
-    Raises:
-
-    """    
-
-    mat_sim = load_CBF_similarity_matrix()
-    response = { "Similarity matrix loaded": "Done"}
-    
     return response
 
 
