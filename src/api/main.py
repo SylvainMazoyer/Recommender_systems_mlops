@@ -95,6 +95,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
     """
+
+    Mettre à jour :
+
     Vérifie les informations d'identification de l'administrateur.
 
     Args:
