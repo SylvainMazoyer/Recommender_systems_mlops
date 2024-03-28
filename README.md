@@ -77,7 +77,7 @@ Cette table peut être croisée avec une table, **ml-youtube.csv** disponible à
 
 Ces 3 fichiers sont à sauvegarder dans le dossier **data**.
 
-### Création des fichiers d'initialisation de la base de données
+#### Création des fichiers d'initialisation de la base de données
 
 La base de données PostgreSQL contient 5 tables : 
 - notes
