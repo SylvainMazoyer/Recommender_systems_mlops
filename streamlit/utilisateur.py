@@ -5,57 +5,73 @@ from streamlit_extras.grid import grid
 
 sidebar_name = "Utilisateur"
 
-# Affichage des 5 films recommandés via la méthode corresondant au endpoint fourni
-def print_reco(titre, endpoint, username):
-    my_grid = grid(1, 3, 2, vertical_align="center")
-    my_grid.title(titre)
-
-    r = json.loads(requests.get(f"http://127.0.0.1:8000/{endpoint}",data=json.dumps({"name":username})).json())
-    for i in range(5) :
-        with my_grid.expander(r[i]["title"], expanded=False):
-            st.write("Genre : ", r[i]["genres"])
-            st.video(r[i]["youtubeId"])
-            st.button("Lancer le film", key=str(r[i]["movieId"])+"button", on_click=click_movie, args=(r[i]["movieId"],username,))
-            st.slider('Votre avis sur le film',1,5,3,1,key=str(r[i]["movieId"])+"slider", on_change=click_note, args=(r[i]["movieId"],username,))
-
 # Simule la visualisation d'un film
-def click_movie(movie_id,username):
-    st.write("movie watched : ",movie_id,username)
-    #requests.post("http://127.0.0.1:8000/user_activity", 
-    #                    headers={"Content-Type": "application/json"}, 
-    #                    data=json.dumps({"username":username, "movieId":movie_id}) )
+def click_movie(movie_id,userid):
+    requests.post("http://api_model_container:5000/user_activity", 
+                        json={"userId":str(userid), "movieId":movie_id})
     
 
 # Ajout d'une note à un film
-def click_note(movie_id,username):
-    st.write("movie rated : ",movie_id,username, st.session_state[str(movie_id)+"slider"])
-    #requests.post("http://127.0.0.1:8000/user_activity", 
-    #                    headers={"Content-Type": "application/json"}, 
-    #                    data=json.dumps({"username":username, "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]}) )
+def click_note(movie_id,userid):
+    requests.post("http://api_model_container:5000/user_activity", 
+                        json={"userId":str(userid), "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]})
     
 
-@st.cache_data(ttl=60)
+
+# Affichage des 5 films recommandés via la méthode corresondant au endpoint fourni
+def print_reco(titre, endpoint, username, userId, session):
+
+    if (st.session_state["new_reco_alea"]==True and session=="rand_model") or (st.session_state["new_reco_cbf"]==True and session=="CBF_model") :
+        st.session_state[session]  = json.loads(requests.get(f"http://api_model_container:5000/{endpoint}",json={"name": username, "id": userId}).json())
+
+    if st.session_state[session] == {"Last viewed movie": "None"}:
+        pass
+
+    elif st.session_state[session] is not None: 
+        my_grid = grid(1, 3, 2, vertical_align="center")
+        my_grid.title(titre)
+        
+        for movie in st.session_state[session]  :
+            with my_grid.expander(movie["title"], expanded=True):
+                st.write("Genre : ", movie["genres"])
+                st.video(movie["youtubeid"])
+                st.button("Lancer le film", key=str(movie["movieid"])+"button", on_click=click_movie, args=(movie["movieid"],userId))
+                st.slider('Votre avis sur le film',1,5,3,1,key=str(movie["movieid"])+"slider", on_change=click_note, args=(movie["movieid"],userId))
+        
+    st.session_state["new_reco"]=False
+
+
+# @st.cache_data(ttl=6000)
 def api_call_create_user(username):
-    response = requests.post("http://127.0.0.1:8000/create-user", 
-                        headers={"Content-Type": "application/json"}, 
-                        data=json.dumps({"name":username}) ).json()["message"]
-    st.session_state['api_call_create_user'] = response
+    response = requests.post("http://api_model_container:5000/create-user", 
+                        json = {'name': username}).json()
+    st.session_state['userId'] = response["userId"]
 
 def run():   
 
-    st.image('streamlit/assets/dataflix.png')
+    st.image('assets/dataflix.png')
 
-    form = st.form(key='my-form')
-    username = form.text_input('Enter your name')
-    submit = form.form_submit_button('Submit', on_click=api_call_create_user, args=(username,))
+    username = st.text_input('Enter your username')
+    api_call_create_user(username)
+
+    if "new_reco_alea" not in st.session_state : 
+        st.session_state["new_reco_alea"] = True
+
+    if "new_reco_cbf" not in st.session_state : 
+        st.session_state["new_reco_cbf"] = True
+
+    if "rand_model" not in st.session_state:
+        st.session_state["rand_model"] = None
+
+    if "CBF_model" not in st.session_state:
+        st.session_state["CBF_model"] = None
+
+    if st.button('Nouvelles recommandations aléatoires'):
+        st.session_state["new_reco_alea"] = True
+
+    # Ajouter un bouton pour regénérer des reco et sinon les mêmes sont conservées
     
-    if 'api_call_create_user' in st.session_state :
-        if st.session_state['api_call_create_user'] == 'user already exists':
-            print_reco('5 films aléatoires', 'predict/rand_model', username)
-            print_reco("D'après ce que vous avez vu récemment", 'predict/predict_CBF_model', username)
-
-        elif st.session_state['api_call_create_user'] == 'user created successfully' : 
-            print_reco('5 films aléatoires', 'predict/rand_model', username)
-
-
+    if username != "": 
+        print_reco('5 films aléatoires', 'predict/rand_model', username, st.session_state["userId"] ,"rand_model")
+        print_reco("D'après ce que vous avez vu récemment", 'predict/predict_CBF_model', username, st.session_state["userId"],"CBF_model" )
 

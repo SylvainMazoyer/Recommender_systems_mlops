@@ -3,19 +3,20 @@ import requests
 import json
 from streamlit_extras.grid import grid
 from requests.auth import HTTPBasicAuth
+import base64
 
 sidebar_name = "Admin"
         
-        
-@st.cache_data(ttl=60)        
-def api_call_connect_admin(endpoint, username, password):
-    try:
-        response = requests.get(f"http://127.0.0.1:8000/{endpoint}", 
-                                auth=HTTPBasicAuth(username, password)).json()
-        return response
-    except Exception as e:
-        st.error(f"Error: {e}")
-        return None
+            
+def encode_password(username,password):
+    str_to_encode = username + ':' + password
+    encoded_str = "Basic " + base64.b64encode(str_to_encode.encode()).decode()
+    return encoded_str
+    
+def api_call_admin(username,password,role):
+    response = requests.get(f'http://api_model_container:5000/admin/{role}', 
+                        headers={"Authorization": encode_password(username,password)})
+    return response
 
 def api_call_entrainer_model():
     entrainer = st.button('entrainer')
@@ -35,7 +36,7 @@ def api_call_create_movie(title, year, genres_list, username, password):
             "year": year,
             "genres": genres_list
         }
-        response = requests.post("http://127.0.0.1:8000/create-movie",
+        response = requests.post("http://api_model_container:5000/create-movie",
                                  auth=(username, password),
                                  json=payload)
         return response
