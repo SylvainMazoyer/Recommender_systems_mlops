@@ -10,13 +10,6 @@ Cette API doit pouvoir être accessible depuis un dashboard externe et accéder 
 En outre, l'ensemble doit être conteneurisé (API et BDD à part, éventuellement avec un dashboard simulant la plateforme de streaming à part aussi).
 L'intégration continue doit pouvoir se faire et des tests unitaires doivent être implémentés.
 
-## Données d'origine :
-
-Dans le cadre de ce projet, nous nous sommes servi du dataset **MovieLens20M**, disponible à l'adresse *https://grouplens.org/datasets/movielens/20m/*. 
-Ce dataset contient les notes attribuées par près de 138 000 utilisateurs à environ 27 000 films dans un fichier intitulé **ratings.csv**.
-Il contient aussi une table,**movies.csv**, des films avec pour chaque film leur titre, l'année de sortie et ses genres. 
-Cette table peut être croisée avec une table, **links.csv** disponible à l'adresse *https://grouplens.org/datasets/movielens/20m-youtube/* et qui contient les liens youtube vers les trailers des films quand disponible.
-
 
 Project Organization
 ------------
@@ -74,6 +67,15 @@ Project Organization
 
 <a href="https://ibb.co/TP1z08d"><img src="https://i.ibb.co/7rQ7pWL/Capture-d-cran-du-2024-03-25-16-21-42.png" alt="Capture-d-cran-du-2024-03-25-16-21-42" border="0"></a>
 
+
+## Données d'origine :
+
+Dans le cadre de ce projet, nous nous sommes servi du dataset **MovieLens20M**, disponible à l'adresse *https://grouplens.org/datasets/movielens/20m/*. 
+Ce dataset contient les notes attribuées par près de 138 000 utilisateurs à environ 27 000 films dans un fichier intitulé **ratings.csv**.
+Il contient aussi une table,**movies.csv**, des films avec pour chaque film leur titre, l'année de sortie et ses genres. 
+Cette table peut être croisée avec une table, **links.csv** disponible à l'adresse *https://grouplens.org/datasets/movielens/20m-youtube/* et qui contient les liens youtube vers les trailers des films quand disponible.
+
+
 ## Dockerisation 
 
 ### Etapes : 
@@ -90,6 +92,7 @@ Project Organization
 ##### *Lancement du docker-compose :*
 Avec docker-compose up, on crée les 3 conteneurs associés aux 3 images. 
 Il faut bien faire attention à ce que les noms des images dans le fichier docker-compose.yml correspondent bien aux noms et versions des images créées en local 
+
 
 ## Intégration continue
 
