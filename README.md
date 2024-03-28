@@ -18,7 +18,7 @@ Il contient aussi une table,**movies.csv**, des films avec pour chaque film leur
 Cette table peut être croisée avec une table, **links.csv** disponible à l'adresse *https://grouplens.org/datasets/movielens/20m-youtube/* et qui contient les liens youtube vers les trailers des films quand disponible.
 
 
-Project Organization (A METTRE A JOUR)
+Project Organization
 ------------
 
     ├── LICENSE
@@ -87,14 +87,15 @@ Project Organization (A METTRE A JOUR)
 - une image **api_model** pour l'API et le modèle de recommandation
 - une image **streamlit_app** pour l'IHM streamlit
 
-##### *Initialisation de la base de données :*
-Créer un container à partir de l'image **data**, la base de donnée est créée avec les différentes tables mais elles sont toutes vides. 
-Pour les initialiser avec les fichiers sources, il faut se placer dans le conteneur et exécuter le fichier init_data.sh. 
-
 ##### *Lancement du docker-compose :*
 Avec docker-compose up, on crée les 3 conteneurs associés aux 3 images. 
 Il faut bien faire attention à ce que les noms des images dans le fichier docker-compose.yml correspondent bien aux noms et versions des images créées en local 
 
+## Intégration continue
+
+Si des modifications sont apportées sur la structure de la base de données (ajout d'un champ, d'une table etc.), il faut penser à mettre à jour l'image DockerHub importée par Github Actions.
+
+--------
 
 
 
