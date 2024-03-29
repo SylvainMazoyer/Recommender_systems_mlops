@@ -1,7 +1,5 @@
 import pytest
 import requests
-from src.api.main import delete_user
-
 
 # Test du endpoint GET /
 def test_get_test():
@@ -49,7 +47,6 @@ def test_create_user():
     assert response.status_code == 200
     assert data['message'] == "user created successfully"
     assert 'userId' in data
-    delete_user("new_user")
 
 # Test attempting to create a user that already exists
 def test_create_existing_user():
