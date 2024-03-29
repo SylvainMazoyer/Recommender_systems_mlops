@@ -466,7 +466,50 @@ async def predict_CBF_model(user_data: User_data):
         logging.info('%s : Accès API GET /predict/predict_CBF_model: No available prediction', userid)
 
     return results_json
+def delete_user(username):
+    """
+    suprime un utilisateur dans le système.
 
+    Args:
+        username (str): Le nom d'utilisateur de l'administrateur.
+
+    Does:
+        Regarde si l'utilisateur est déjà dans la table utilisateurs
+        - si il existe, suprime de ce dernier
+        - si il n'existe pas, on ne faire rien
+
+    Returns: 
+        response
+    """    
+    # Connexion à la base postgre
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
+    # Récupération de la ligne correspondant au user dans la table utilisateurs
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM utilisateurs where name_user = %s", (username,))
+    rows = cur.fetchone()
+    cur.close()
+
+    # Si une ligne remonte, on la supprime
+    if rows : 
+        cur = conn.cursor()
+        cur.execute("DELETE FROM utilisateurs WHERE name_user = %s", (username,))
+        conn.commit()
+        cur.close()
+
+        response = {"message": "user deleted successfully"}
+
+    # Si aucune ligne ne remonte, on fait rien
+    else:
+        response = {"message": "user n'existe pas "}
+    conn.close()
+    return response
 if __name__ == '__main__':
     uvicorn.run(api, host='0.0.0.0', port=5000)
 
