@@ -30,15 +30,15 @@ def print_reco(titre, endpoint, username, userId, session):
     elif st.session_state[session] is not None: 
         my_grid = grid(1, 3, 2, vertical_align="center")
         my_grid.title(titre)
-        
+            
         for movie in st.session_state[session]  :
             with my_grid.expander(movie["title"], expanded=True):
                 st.write("Genre : ", movie["genres"])
                 st.video(movie["youtubeid"])
                 st.button("Lancer le film", key=str(movie["movieid"])+"button", on_click=click_movie, args=(movie["movieid"],userId))
                 st.slider('Votre avis sur le film',1,5,3,1,key=str(movie["movieid"])+"slider", on_change=click_note, args=(movie["movieid"],userId))
-        
-    st.session_state["new_reco"]=False
+            
+    st.session_state["new_reco_alea"]=False
 
 
 # @st.cache_data(ttl=6000)
@@ -69,7 +69,6 @@ def run():
     if st.button('Nouvelles recommandations aléatoires'):
         st.session_state["new_reco_alea"] = True
 
-    # Ajouter un bouton pour regénérer des reco et sinon les mêmes sont conservées
     
     if username != "": 
         print_reco('5 films aléatoires', 'predict/rand_model', username, st.session_state["userId"] ,"rand_model")
