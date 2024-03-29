@@ -43,7 +43,7 @@ jobs:
             docker container ps -a
         
         - name: Wait for postgre to run
-          run: sleep 90
+          run: sleep 50
 
         - name: Run Pytest tests inside the container
           run: |
