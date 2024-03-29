@@ -17,6 +17,7 @@ def test_get_secure_data_with_valid_credentials_and_data_role():
 def test_get_secure_data_with_valid_credentials_and_other_role():
     response = requests.get("http://api_model_container:5000/admin/Data", 
                             auth=('Dataflix', '$2b$12$63F7IpKFNbuWx1vi08p/Ie9RDuqJsQZ.BOyc3HguQkgzZsBhY50U.')).json()
+    print(response)
     assert response['detail'] == 'Droits insuffisants'
     #assert response['status_code'] == 401
     #assert 'WWW-Authenticate' in response['headers']
@@ -57,6 +58,4 @@ def test_create_existing_user():
     # Assert that the response indicates the user already exists
     assert response.status_code == 200
     assert data['message'] == "user already exists"
-    assert 'userId' == 1
-
-
+    
