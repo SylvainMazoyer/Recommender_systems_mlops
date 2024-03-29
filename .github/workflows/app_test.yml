@@ -2,7 +2,7 @@ name: Application test
 
 on:
   push:
-    branches: [ "master", "dev", "CI-with-Github-Actions_2" ]
+    branches: [ "master", "dev", "test_ci_api" ]
 
 jobs:
   build:
