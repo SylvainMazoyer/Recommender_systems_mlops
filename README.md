@@ -104,7 +104,6 @@ Les fichiers nécessaires à leur initialisation sont à générer en exécutant
 
 ##### *Lancement du docker-compose :*
 Avec docker-compose up, on crée les 3 conteneurs associés aux 3 images. 
-Il faut bien faire attention à ce que les noms des images dans le fichier docker-compose.yml correspondent bien aux noms et versions des images créées en local 
 
 
 ## Intégration continue
