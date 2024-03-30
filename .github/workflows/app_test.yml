@@ -46,5 +46,8 @@ jobs:
           run: sleep 90
 
         - name: Run Pytest tests inside the container
+          env:
+            YOUSRA_PASSWORD: ${{ secrets.YOUSRA_PASSWORD }}
+            DATAFLIX_PASSWORD: ${{ secrets.DATAFLIX_PASSWORD }}
           run: |
             docker exec streamlit_container pytest ./app_test.py
