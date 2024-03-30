@@ -10,7 +10,7 @@ def test_get_test():
 
 # Test with valid credentials and requested role 'Data'
 def test_get_secure_data_with_valid_credentials_and_data_role():
-    password = str(os.getenv('YOUSRA_PASSWORD'))
+    password = str(os.environ('YOUSRA_PASSWORD'))
     print('test : ',password)
     response = requests.get("http://api_model_container:5000/admin/Data", 
                             auth=('Yousra', password)).json()
