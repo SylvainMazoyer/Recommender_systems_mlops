@@ -43,11 +43,13 @@ jobs:
             docker container ps -a
         
         - name: Wait for postgre to run
-          run: sleep 90
+          run: sleep 60
 
         - name: Run Pytest tests inside the container
           env:
             YOUSRA_PASSWORD: ${{ secrets.YOUSRA_PASSWORD }}
             DATAFLIX_PASSWORD: ${{ secrets.DATAFLIX_PASSWORD }}
           run: |
+            echo ${{ secrets.YOUSRA_PASSWORD }}
+            echo ${{ secrets.DATAFLIX_PASSWORD }}
             docker exec streamlit_container pytest ./app_test.py
