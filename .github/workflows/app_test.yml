@@ -38,8 +38,9 @@ jobs:
             docker pull docker.io/madigrg/data:latest
   
         - name: Build and run containers
+          working-directory: /home/runner/work/nov23_continu_mlops_recommandations/nov23_continu_mlops_recommandations
           run: |
-            docker-compose up -d
+            docker-compose -f docker-compose.github.yml up -d 
             docker container ps -a
         
         - name: Wait for postgre to run
@@ -48,3 +49,4 @@ jobs:
         - name: Run Pytest tests inside the container
           run: |
             docker exec -e YOUSRA_PASSWORD="${{ secrets.YOUSRA_PASSWORD }}" -e DATAFLIX_PASSWORD="${{ secrets.DATAFLIX_PASSWORD }}" streamlit_container pytest ./app_test.py
+
