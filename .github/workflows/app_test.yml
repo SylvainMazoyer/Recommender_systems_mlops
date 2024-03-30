@@ -2,7 +2,7 @@ name: Application test
 
 on:
   push:
-    branches: [ "master", "dev", "CI-with-Github-Actions_2" ]
+    branches: [ "master", "dev", "test_ci_api" ]
 
 jobs:
   build:
@@ -44,8 +44,9 @@ jobs:
             docker container ps -a
         
         - name: Wait for postgre to run
-          run: sleep 90
+          run: sleep 60
 
         - name: Run Pytest tests inside the container
           run: |
-            docker exec streamlit_container pytest ./app_test.py
+            docker exec -e YOUSRA_PASSWORD="${{ secrets.YOUSRA_PASSWORD }}" -e DATAFLIX_PASSWORD="${{ secrets.DATAFLIX_PASSWORD }}" streamlit_container pytest ./app_test.py
+
