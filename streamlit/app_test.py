@@ -11,13 +11,13 @@ def test_get_test():
 # Test with valid credentials and requested role 'Data'
 def test_get_secure_data_with_valid_credentials_and_data_role():
     response = requests.get("http://api_model_container:5000/admin/Data", 
-                            auth=('Yousra', os.getenv('YOUSRA_PASSWORD'))).json()
+                            auth=('Yousra', str(os.getenv('YOUSRA_PASSWORD')))).json()
     assert response == {'message' : "Hello Yousra, you have access to secure data"}
 
 # Test with valid credentials and requested role other than 'Data'
 def test_get_secure_data_with_valid_credentials_and_other_role():
     response = requests.get("http://api_model_container:5000/admin/Data", 
-                            auth=('Dataflix', os.getenv('DATAFLIX_PASSWORD'))).json()
+                            auth=('Dataflix', str(os.getenv('DATAFLIX_PASSWORD')))).json()
     print(response)
     assert response['detail'] == 'Droits insuffisants'
 
