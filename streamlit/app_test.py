@@ -11,7 +11,7 @@ def test_get_test():
 def test_get_secure_data_with_valid_credentials_and_data_role():
     response = requests.get("http://api_model_container:5000/admin/Data", 
                             auth=('Yousra', '54321')).json()
-    assert response == {'message' : "Hello Yousra, you have access to secure data"}
+    assert response == {'detail' : "Hello Yousra, you have access to secure data"}
 
 # Test with valid credentials and requested role other than 'Data'
 def test_get_secure_data_with_valid_credentials_and_other_role():
