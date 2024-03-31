@@ -59,7 +59,9 @@ Project Organization
     │   ├── requirements_streamlit.txt
     │   ├── app_test.py <- tests run at push by github actions
     │
-    └── docker-compose.yml <- script to launch containers
+    ├── lancement.sh <- script to run project
+    ├── docker-compose.local.yml  <- script to launch containers
+    └── docker-compose.github.yml <- script to launch containers
 
 --------
 
@@ -77,7 +79,14 @@ Cette table peut être croisée avec une table, **ml-youtube.csv** disponible à
 
 Ces 3 fichiers sont à sauvegarder dans le dossier **data**.
 
-#### Création des fichiers d'initialisation de la base de données
+## Lancement du projet & Etapes 
+
+Une fois que les fichiers sources sont sauvegardés dans le dossier data, il faut exécuter la commande suivante pour lancer le projet : 
+**bash lancement.sh** 
+
+Cela lance les étapes ci-dessous.
+
+#### *Création des fichiers d'initialisation de la base de données*
 
 La base de données PostgreSQL contient 5 tables : 
 - notes
@@ -86,24 +95,20 @@ La base de données PostgreSQL contient 5 tables :
 - films
 - admins
 
-Les fichiers nécessaires à leur initialisation sont à générer en exécutant le script **src/data/make_dataset.py**.
+#### *Création des images* :
 
+3 images sont créées : 
+- une image **data** pour la base de données PostgreSQL 
+- une image **api_model** pour l'API et le modèle de recommandation
+- une image **streamlit_app** pour l'IHM streamlit
 
-## Dockerisation 
+#### *Lancement du docker-compose :*
 
-### Etapes : 
-- Création des images
-- Initialisation de la base de données
-- Lancement du docker-compose
+Il existe 2 fichiers docker-compose : 
+- un lorsque le projet est lancé en local par exemple (cela utilise les fichiers source pour créer la base de données)
+- un pour le cas particulier des lancements Github Actions (cela utilise une image hébergée sur dockerhub)
 
-##### *Création des images* :
-3 images sont à créer à l'aide des Dockerfile : 
-- une image **data** pour la base de données PostgreSQL (Dockerfila dans data)
-- une image **api_model** pour l'API et le modèle de recommandation (Dockerfile dans src)
-- une image **streamlit_app** pour l'IHM streamlit (Dockerfile dans streamlit)
-
-##### *Lancement du docker-compose :*
-Avec docker-compose up, on crée les 3 conteneurs associés aux 3 images. 
+Le fichier lancement.sh exécute donc la version locale.
 
 
 ## Intégration continue
