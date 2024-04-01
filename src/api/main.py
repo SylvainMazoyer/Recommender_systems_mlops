@@ -14,12 +14,13 @@ import time
 import logging 
 import json
 
+
 # Configuration du logging
 logging.basicConfig(filename='logs/API_log.log', encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 
-def wait_for_postgres(host, port, user, password, database, max_retries=10, retry_interval=5):
+def wait_for_postgres(host, port, user, password, database, max_retries=10, retry_interval=10):
     retries = 0
     while retries < max_retries:
         try:
@@ -60,6 +61,9 @@ api = FastAPI(
 def read_root():
     return {"message": "API is functional"}
 
+train_CBF_model()
+mat_sim = load_CBF_similarity_matrix()
+# df_notes_launch = pd.read_csv("./data/notes.csv") # Utiliser la base postgre
 
   
 """ Chargement des données nécessaires au lancement pour accélérer le processus par la suite:
@@ -112,6 +116,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         HTTPException: Si les informations d'identification sont incorrectes,
         une exception HTTP 401 Unauthorized est levée.
     """
+
     conn = psycopg2.connect(
         dbname='dataflix',
         user='postgres',
@@ -132,7 +137,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     
         # Si le mot de passe saisi ne correspond pas à celui de la base, on lève une erreur 
         if not (pwd_context.verify(credentials.password, db_password)):
-            logging.info('%s : ERREUR 401 : Accès admin non autorisé', credentials.username)
+            logging.info('%s : ERREUR 401 : Mot de passe incorrect', credentials.username)
             raise HTTPException(
                                 status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Mot de passe incorrect",
@@ -141,9 +146,10 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
     # si le username n'est pas présent dans la table admin, on lève une erreur       
     else:
-        logging.info('%s : ERREUR 401 : Accès admin non autorisé', credentials.username)
+        logging.info('%s : ERREUR 401 : Admin inconnu', credentials.username)
 
         raise HTTPException(
+
                                 status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Utilisateur inconnu",
                                 headers={"WWW-Authenticate": "Basic"},
@@ -156,6 +162,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
 @api.get("/admin/{asked_role}")
 async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)):
+
     """
 
     Description:
@@ -175,7 +182,7 @@ async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)
     username, role = user_rights
 
     if asked_role == 'Data' and role!='Data':
-        logging.info('%s : ERREUR 401 : Accès admin non autorisé', username)
+        logging.info('%s : ERREUR 401 : Droits insuffisants', username)
         raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Droits insuffisants",
@@ -183,9 +190,6 @@ async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)
                     )
     logging.info('%s : Accès admin autorisé', username)
     return {"message": f"Hello {username}, you have access to secure data"}
-
-
-
 
 
 
@@ -438,8 +442,6 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
     return response
 
 
-
-  
 @api.get("/train/train_cbf")
 async def train_cbf():
     """
@@ -460,32 +462,13 @@ async def train_cbf():
     """    
 
     train_CBF_model()
+    
+    global mat_sim 
+    mat_sim = load_CBF_similarity_matrix()
+
+    logging.info('Modèle CBF entrainé')
     response = { "CBF model trained": "Done"}
 
-    return response
-
-
-@api.get("/train/load_CBF_sim_matrix")
-async def load_CBF_sim_matrix():
-    """
-    Charge la matrice de similarité cosinus du CBF, à relancer à chaque fois qu'un film est ajouté et au lancement de l'api
-
-    Args:
-        None
-
-    Does:
-        cf ci-dessus
-
-    Returns:
-        dict: "Similarity matrix loaded": "Done"
-
-    Raises:
-
-    """    
-
-    mat_sim = load_CBF_similarity_matrix()
-    response = { "Similarity matrix loaded": "Done"}
-    
     return response
 
 
@@ -546,6 +529,6 @@ async def predict_CBF_model(user_data: User_data):
 
     return results_json
 
-
 if __name__ == '__main__':
     uvicorn.run(api, host='0.0.0.0', port=5000)
+

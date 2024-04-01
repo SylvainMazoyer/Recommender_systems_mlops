@@ -3,11 +3,11 @@ import csv
 def create_fichier2():
     unique_user_ids = set()
 
-    with open("data/ratings.csv", mode='r', newline='', encoding='utf-8') as csv_file_1:
+    with open("data/notes.csv", mode='r', newline='', encoding='utf-8') as csv_file_1:
         csv_reader_1 = csv.DictReader(csv_file_1)
 
         # Open fichier2.csv in write mode ('w')
-        with open("data/users.csv", mode='w', newline='', encoding='utf-8') as csv_file_2:
+        with open("data/utilisateurs.csv", mode='w', newline='', encoding='utf-8') as csv_file_2:
             fieldnames = ['userId', 'name', "last_viewed"]
             csv_writer = csv.DictWriter(csv_file_2, fieldnames=fieldnames)
             csv_writer.writeheader()

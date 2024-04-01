@@ -2,7 +2,7 @@ name: Application test
 
 on:
   push:
-    branches: [ "master", "dev", "CI-with-Github-Actions_2" ]
+    branches: [ "master", "dev", "test_ci_api" ]
 
 jobs:
   build:
@@ -38,13 +38,15 @@ jobs:
             docker pull docker.io/madigrg/data:latest
   
         - name: Build and run containers
+          working-directory: /home/runner/work/nov23_continu_mlops_recommandations/nov23_continu_mlops_recommandations
           run: |
-            docker-compose up -d
+            docker-compose -f docker-compose.github.yml up -d 
             docker container ps -a
         
         - name: Wait for postgre to run
-          run: sleep 90
+          run: sleep 60
 
         - name: Run Pytest tests inside the container
           run: |
-            docker exec streamlit_container pytest ./app_test.py
+            docker exec -e YOUSRA_PASSWORD="${{ secrets.YOUSRA_PASSWORD }}" -e DATAFLIX_PASSWORD="${{ secrets.DATAFLIX_PASSWORD }}" streamlit_container pytest ./app_test.py
+
