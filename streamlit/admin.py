@@ -7,23 +7,18 @@ import base64
 
 sidebar_name = "Admin"
         
-            
-def encode_password(username,password):
-    str_to_encode = username + ':' + password
-    encoded_str = "Basic " + base64.b64encode(str_to_encode.encode()).decode()
-    return encoded_str
     
-def api_call_admin(username,password,role):
+def api_call_connect_admin(username,password,role):
     response = requests.get(f'http://api_model_container:5000/admin/{role}', 
-                        headers={"Authorization": encode_password(username,password)})
+                            auth=(username,password)).json()
     return response
 
 def api_call_entrainer_model():
     entrainer = st.button('entrainer')
     if entrainer :
         try:
-            response = requests.get(f"http://127.0.0.1:8000/train/train_cbf").json()
-            return response
+            response = requests.get("http://api_model_container:5000/train/train_cbf").json()
+            st.success(response)
         except Exception as e:
             st.error(f"Error: {e}")
             return None
@@ -38,8 +33,8 @@ def api_call_create_movie(title, year, genres_list, username, password):
         }
         response = requests.post("http://api_model_container:5000/create-movie",
                                  auth=(username, password),
-                                 json=payload)
-        return response
+                                 json=payload).json()
+        st.success(response)
     except Exception as e:
         st.error(f"Error: {e}")
         return None
@@ -52,7 +47,7 @@ def run_create_movie(username, password):
     
     create = st.button('Create movie')
 
-    if create and st.session_state.action == "Create Movie":
+    if create and st.session_state.action == "Ajout d'un film":
         if title:
             if api_call_create_movie(title, year, selected_genres, username, password):
                 st.success("Movie created successfully!")
@@ -69,21 +64,19 @@ def run_auth():
         login_button = st.button("Login")
 
     if login_button :
-        st.session_state.role = None
         if role and (username and password):
-            response_admin = api_call_connect_admin(role, username, password)
+            response_admin = api_call_connect_admin(username, password,role)
             if response_admin and 'message' in response_admin:
                 st.success(response_admin['message'])
                 st.session_state.login = True
                 st.session_state.role = role
             else:
+                st.session_state.login = False
                 st.error(f"Failed to authenticate as {role}. Please check your credentials.")
         else:
+            st.session_state.login = False
             st.warning("Please provide both username and password.")
     return username, password
-
-def call_action():
-    st.session_state.action = 'action'
 
 def run():
     if "action" not in st.session_state:
@@ -93,26 +86,20 @@ def run():
         
     username, password = run_auth()
 
-    if st.session_state.role == "plateforme":
-        actions = ["" ,"Create Movie", "Action 2"]
-        selected_action = st.selectbox("Select Action", actions, 
-                                       on_change=call_action
-                                       )
-        if st.session_state.action != None :
-            st.session_state.action = selected_action
-            if st.session_state.action == "Create Movie":
-                run_create_movie(username, password)
-            elif st.session_state.action == "Action 2":
-                st.write("Action loading ...")        
+    if 'login' in st.session_state:
+        if st.session_state['login']== True:
 
-    elif st.session_state.role == "equipe_ds":
-        actions = ["" ,"Create movie", "entrainer le model"]
-        selected_action = st.selectbox("Select Action", actions, 
-                                       on_change=call_action
-                                       )
-        if st.session_state.action != None :
-            st.session_state.action = selected_action
-            if st.session_state.action == "Create Movie":
+            if st.session_state.role == "Plateforme":
+                actions = ["Ajout d'un film"]
+            elif st.session_state.role == 'Data':
+                actions = ["Ajout d'un film", "Entrainement du modèle"]
+
+            if 'actions' in locals() or 'actions' in globals() :
+                selected_action = st.selectbox("Select Action", actions)
+
+                st.session_state.action = selected_action
+            
+            if st.session_state.action == "Ajout d'un film":
                 run_create_movie(username, password)
-            elif st.session_state.action == "entrainer le model":
-                api_call_entrainer_model()
+            elif st.session_state.action == "Entrainement du modèle":
+                api_call_entrainer_model()    

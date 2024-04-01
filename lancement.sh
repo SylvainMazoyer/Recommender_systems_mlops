@@ -22,7 +22,7 @@ if [ "$CI" = "true" ]; then
 else
     echo "Running locally"
     docker-compose -f docker-compose.local.yml up -d
-    sleep 10
+    sleep 60
     docker container restart data_container
 fi
 

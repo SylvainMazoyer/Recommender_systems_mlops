@@ -20,7 +20,7 @@ logging.basicConfig(filename='logs/API_log.log', encoding='utf-8', level=logging
                     format='%(asctime)s : %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 
-def wait_for_postgres(host, port, user, password, database, max_retries=10, retry_interval=5):
+def wait_for_postgres(host, port, user, password, database, max_retries=10, retry_interval=10):
     retries = 0
     while retries < max_retries:
         try:
@@ -130,7 +130,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     
         # Si le mot de passe saisi ne correspond pas à celui de la base, on lève une erreur 
         if not (pwd_context.verify(credentials.password, db_password)):
-            logging.info('%s : ERREUR 401 : Accès admin non autorisé', credentials.username)
+            logging.info('%s : ERREUR 401 : Mot de passe incorrect', credentials.username)
             raise HTTPException(
                                 status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Mot de passe incorrect",
@@ -139,7 +139,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
     # si le username n'est pas présent dans la table admin, on lève une erreur       
     else:
-        logging.info('%s : ERREUR 401 : Accès admin non autorisé', credentials.username)
+        logging.info('%s : ERREUR 401 : Admin inconnu', credentials.username)
 
         raise HTTPException(
 
@@ -174,7 +174,7 @@ async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)
     username, role = user_rights
 
     if asked_role == 'Data' and role!='Data':
-        logging.info('%s : ERREUR 401 : Accès admin non autorisé', username)
+        logging.info('%s : ERREUR 401 : Droits insuffisants', username)
         raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Droits insuffisants",
@@ -414,6 +414,7 @@ async def train_cbf():
     global mat_sim 
     mat_sim = load_CBF_similarity_matrix()
 
+    logging.info('Modèle CBF entrainé')
     response = { "CBF model trained": "Done"}
 
     return response
