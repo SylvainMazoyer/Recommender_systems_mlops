@@ -2,7 +2,8 @@ name: Application test
 
 on:
   push:
-    branches: [ "master", "dev", "test_ci_api" ]
+    branches: [ "master", "dev"]
+    pull_request: [ "master", "dev"]
 
 jobs:
   build:
