@@ -35,8 +35,8 @@ def print_reco(titre, endpoint, username, userId, session):
             with my_grid.expander(movie["title"], expanded=True):
                 st.write("Genre : ", movie["genres"])
                 st.video(movie["youtubeid"])
-                st.button("Lancer le film", key=str(movie["movieid"])+"button", on_click=click_movie, args=(movie["movieid"],userId))
-                st.slider('Votre avis sur le film',1,5,3,1,key=str(movie["movieid"])+"slider", on_change=click_note, args=(movie["movieid"],userId))
+                st.button("Lancer le film", key=str(movie["movieid"])+"button"+session, on_click=click_movie, args=(movie["movieid"],userId))
+                st.slider('Votre avis sur le film',1,5,3,1,key=str(movie["movieid"])+"slider"+session, on_change=click_note, args=(movie["movieid"],userId))
             
     st.session_state["new_reco_alea"]=False
 
