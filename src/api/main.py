@@ -158,13 +158,11 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)):
     """
 
-    Mettre à jour
-
     Description:
     Cette route renvoie un message de bienvenue personnalisé en utilisant le nom d'utilisateur fourni en tant que dépendance.
 
     Args:
-    - username (str, dépendance): Le nom d'utilisateur récupéré à partir de la dépendance `get_secure_data`.
+        user_rights : tuple (name, role) dépendant de verify_admin
 
     Returns:
     - str: Un message de bienvenue personnalisé avec le nom d'utilisateur.
@@ -201,8 +199,8 @@ def create_user(user_data: CreateUser):
     Crée un nouvel utilisateur dans le système.
 
     Args:
-        user_data (CreateUser): Les données de l'utilisateur à créer.
-        user (str): Le nom d'utilisateur de l'administrateur.
+        user_data (CreateUser): 
+        -   name (str) : Le nom de l'utilisateur à créer ou connecter
 
     Does:
         Regarde si l'utilisateur est déjà dans la table utilisateurs
@@ -274,7 +272,7 @@ async def pred_rand_model(user_data: User_data):
     Args:
         user_data (User_data):
         - name: str
-        id: int
+        - id: int
 
     Returns:
         json: 5 films aléatoires avec leur id, titre, leurs genres et leur trailer
@@ -383,7 +381,10 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
 
     Args:
         movie_data (CreateMovie): Les données du film à créer.
-        user (str): Le nom d'utilisateur de l'administrateur.
+        -   title (str)
+        -   genres optional (str))
+        -   youtubeId (optional (str))
+        user_rights : tuple (name, role) dépendant de verify_admin  
 
     Does:
         - ajoute un film avec son titre et ses genres dans la table films
@@ -498,7 +499,8 @@ async def predict_CBF_model(user_data: User_data):
     La méthode employée est le filtrage par contenu.
 
     Args:
-        user : nom de l'utilisateur pour lequel on veut faire la prédiction 
+        user_data (CreateUser): 
+        -   name (str) : Le nom de l'utilisateur à créer ou connecter
 
     Does:
         Regarde si l'utilisateur a déjà visionné un film au moins dans la table utilisateur
