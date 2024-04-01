@@ -66,7 +66,11 @@ mat_sim = load_CBF_similarity_matrix()
 # df_notes_launch = pd.read_csv("./data/notes.csv") # Utiliser la base postgre
 
   
-# chargement des données nécessaires au lancement pour accélérer le processus par la suite :
+""" Chargement des données nécessaires au lancement pour accélérer le processus par la suite:
+    - Entraînement du modèle par content-based filtering
+    - chargement de la matrice de similarité entre films ainsi générée
+
+"""
 train_CBF_model()
 mat_sim = load_CBF_similarity_matrix()
 
@@ -95,6 +99,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
     """
+
+    Mettre à jour :
+
     Vérifie les informations d'identification de l'administrateur.
 
     Args:
@@ -157,11 +164,12 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)):
 
     """
+
     Description:
     Cette route renvoie un message de bienvenue personnalisé en utilisant le nom d'utilisateur fourni en tant que dépendance.
 
     Args:
-    - username (str, dépendance): Le nom d'utilisateur récupéré à partir de la dépendance `get_secure_data`.
+        user_rights : tuple (name, role) dépendant de verify_admin
 
     Returns:
     - str: Un message de bienvenue personnalisé avec le nom d'utilisateur.
@@ -195,16 +203,23 @@ def create_user(user_data: CreateUser):
     Crée un nouvel utilisateur dans le système.
 
     Args:
-        user_data (CreateUser): Les données de l'utilisateur à créer.
-        user (str): Le nom d'utilisateur de l'administrateur.
+        user_data (CreateUser): 
+        -   name (str) : Le nom de l'utilisateur à créer ou connecter
+
+    Does:
+        Regarde si l'utilisateur est déjà dans la table utilisateurs
+        - si il n'existe pas, ajout de ce dernier
+        - si il existe on ne faire rien
 
     Returns:
-        dict: Un message indiquant que l'utilisateur a été créé avec succès, 
-        ainsi que les détails de l'utilisateur nouvellement créé.
+        dict: 
+        - Si le nom de l'utilisateur n'est pas dans la base d'utilisateurs,
+        un message indiquant que l'utilisateur a été créé avec succès, 
+        ainsi que les infos concernant l'utilisateur nouvellement créé.
+        - Si le nom de l'utilisateur est dans la base d'utilisateurs,
+        un message indiquant que l'utilisateur est déjà existant
+        ainsi que les infos concernant l'utilisateur en question 
 
-    Raises:
-        HTTPException: Si l'administrateur n'a pas les autorisations appropriées,
-        une exception HTTP 401 Unauthorized est levée.
     """
 
     new_user = user_data.model_dump()
@@ -256,13 +271,16 @@ class User_data(BaseModel):
 @api.get("/predict/rand_model")
 async def pred_rand_model(user_data: User_data):
     """
-    Renvoie 5 films aléatoires
+    Renvoie 5 films aléatoires parmis ceux présents dans la table films
 
     Args:
-        None
+        user_data (User_data):
+        - name: str
+        - id: int
 
     Returns:
-        json: 5 films aléatoires avec leur id, leur genre et leur trailer
+        json: 5 films aléatoires avec leur id, titre, leurs genres et leur trailer
+        au format DataFrame jsonifié
 
     Raises:
 
@@ -281,9 +299,33 @@ class Watch_movie(BaseModel):
 
 @api.post("/user_activity")
 def user_activity(watched: Watch_movie):
-    """ récupère l'activité d'un utilisateur lorsque celui-ci clique sur le trailer d'un film 
-    - met à jour à jour la table utilisateurs avec l'id du film en question comme dernier film regardé
-    - met à jour la table notes avec une note de 3 pour le film regardé"""
+
+    """
+    Récupère l'activité d'un utilisateur lorsque celui-ci visionne un film
+    ou lui attribue une note
+
+    Args:
+        watched de la classe Watch_movie(BaseModel)
+        - userId : str
+        - movieId : int
+        - rating, int optionnel fixé par défaut à 3
+
+    Does:
+        - dans le cas où l'utilisateur visionne un film, change la table Utilisateurs
+        pour indiquer que c'est le dernier film visionné, et lui attribue une note de 3
+        par defaut dans la table notes, qu'il aie déjà été noté ou non..
+        - dans le cas d'une notation, fait de même mais avec la note personnalisée
+
+    Returns:
+        
+        - si le film n'avait pas déjà été noté : 
+        dict: "message": "Note ajoutee"
+        - sinon dict: "message": "Note MAJ"
+
+    Raises:
+
+    """    
+
 
     new_data = watched.model_dump()
 
@@ -343,7 +385,13 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
 
     Args:
         movie_data (CreateMovie): Les données du film à créer.
-        user (str): Le nom d'utilisateur de l'administrateur.
+        -   title (str)
+        -   genres optional (str))
+        -   youtubeId (optional (str))
+        user_rights : tuple (name, role) dépendant de verify_admin  
+
+    Does:
+        - ajoute un film avec son titre et ses genres dans la table films
 
     Returns:
         dict: Un message indiquant que le film a été créé avec succès, 
@@ -397,10 +445,14 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
 @api.get("/train/train_cbf")
 async def train_cbf():
     """
-    Entraîne le modèle CBF, à relancer à chaque fois qu'un film est ajouté
+    Entraîne le modèle CBF, à relancer à chaque fois qu'un film est ajouté.
 
     Args:
         None
+
+    Does:
+        Effectue la Tf-Idf de la description et calcule la matrice de similarité 
+        cosinus entre ecteurs représentant les films, puis enregistre cette matrice.
 
     Returns:
         None
@@ -425,14 +477,23 @@ async def train_cbf():
 @api.get("/predict/predict_CBF_model")
 async def predict_CBF_model(user_data: User_data):
     """
-    Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur si celui-ci était déjà présent en base,
-    et qu'il a déjà regardé un film. La méthode employé est le filtrage par contenu.
+    Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur 
+    si celui-ci était déjà présent en base et qu'il a déjà regardé un film. 
+    La méthode employée est le filtrage par contenu.
 
     Args:
-        user : nom de l'utilisateur pour lequel on veut faire la prédiction 
+        user_data (CreateUser): 
+        -   name (str) : Le nom de l'utilisateur à créer ou connecter
+
+    Does:
+        Regarde si l'utilisateur a déjà visionné un film au moins dans la table utilisateur
+        Si oui; fait la prédiction du modèle CBF pour le dernier film vu l'utilisateur
+        Sinon: indique que la prédiction n'est pas possible
 
     Returns:
-        df des 5 films les plus similaires au dernier film vu par l'utilisateur
+        - si l'utilisateur a déjà visionné au moins un film:
+        json: df des 5 films les plus similaires au dernier film vu par l'utilisateur
+        dict: "Last viewed movie": "None" si l'utilisateur n'a pas encore vu de film
 
     Raises:
 
