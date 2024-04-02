@@ -4,8 +4,8 @@ import random as rd
 import psycopg2
 
 
-def random_recos(): 
-    """retourne 5 films aléatoires de la table films sous forme de dataframe"""
+def last_recos(): 
+    """retourne les 5 derniers films ajoutés dans la table films """
     
     conn = psycopg2.connect(
         dbname='dataflix',
@@ -16,7 +16,7 @@ def random_recos():
     )
 
     cur = conn.cursor()
-    cur.execute("SELECT * FROM films ORDER BY RANDOM() LIMIT 5")
+    cur.execute("SELECT * FROM films ORDER BY movieid DESC LIMIT 5")
     rows = cur.fetchall()
     df = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
     cur.close()
@@ -24,7 +24,5 @@ def random_recos():
     
     return df
 
-
-"""print(random_recos())"""
 
 

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import uvicorn
 from random_model import random_recos
+from last_movies import last_recos
 from train_CBF_model import train_CBF_model
 from load_CBF_similarity_matrix import load_CBF_similarity_matrix
 from predict_CBF_model import recommandations_CBF
@@ -13,6 +14,7 @@ from passlib.context import CryptContext
 import time
 import logging 
 import json
+import threading 
 
 
 # Configuration du logging
@@ -61,18 +63,10 @@ api = FastAPI(
 def read_root():
     return {"message": "API is functional"}
 
+
 train_CBF_model()
 mat_sim = load_CBF_similarity_matrix()
-# df_notes_launch = pd.read_csv("./data/notes.csv") # Utiliser la base postgre
-
-  
-""" Chargement des données nécessaires au lancement pour accélérer le processus par la suite:
-    - Entraînement du modèle par content-based filtering
-    - chargement de la matrice de similarité entre films ainsi générée
-
-"""
-train_CBF_model()
-mat_sim = load_CBF_similarity_matrix()
+mat_sim_lock = threading.Lock()
 
 conn = psycopg2.connect(
         dbname='dataflix',
@@ -88,6 +82,7 @@ rows = cur.fetchall()
 df_films = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
 cur.close()
 conn.close()
+df_films_lock = threading.Lock()
 
 
 security = HTTPBasic()
@@ -290,6 +285,28 @@ async def pred_rand_model(user_data: User_data):
     results_json = results.to_json(orient="records")
     return results_json
 
+@api.get("/predict/last_movies")
+async def pred_rand_model(user_data: User_data):
+    """
+    Renvoie les 5 derniers films ajoutés en base
+
+    Args:
+        user_data (User_data):
+        - name: str
+        - id: int
+
+    Returns:
+        json: 5 films avec leur id, titre, leurs genres et leur trailer
+        au format DataFrame jsonifié
+
+    Raises:
+
+    """    
+    results = last_recos()
+    logging.info('%s : Accès API GET /predict/last_movies',user_data.model_dump()["id"])
+    results_json = results.to_json(orient="records")
+    return results_json
+
 
 class Watch_movie(BaseModel):
     userId: str
@@ -439,6 +456,24 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
         response = {"message": "Film mis a jour"}
         logging.info('%s : Accès API POST /create-movie : film "%s" mis à jour', username, new_movie["title"] )
 
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM films")
+    rows = cur.fetchall()
+    df_films_new = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
+    cur.close()
+    conn.close()
+    global df_films
+    with df_films_lock:
+        df_films = df_films_new
+
     return response
 
 
@@ -463,8 +498,9 @@ async def train_cbf():
 
     train_CBF_model()
     
-    global mat_sim 
-    mat_sim = load_CBF_similarity_matrix()
+    global mat_sim
+    with mat_sim_lock:
+        mat_sim = load_CBF_similarity_matrix()
 
     logging.info('Modèle CBF entrainé')
     response = { "CBF model trained": "Done"}

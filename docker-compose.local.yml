@@ -14,6 +14,8 @@ services:
       - bridge
     depends_on:
       - data
+    ports:
+      - 5000:5000
   streamlit:
     image: streamlit_app:latest
     container_name: streamlit_container
