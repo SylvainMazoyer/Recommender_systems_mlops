@@ -14,7 +14,7 @@ def api_call_connect_admin(username,password,role):
     return response
 
 def api_call_entrainer_model():
-    entrainer = st.button('entrainer')
+    entrainer = st.button('Entrainer le modèle')
     if entrainer :
         try:
             response = requests.get("http://api_model_container:5000/train/train_cbf").json()
@@ -34,49 +34,52 @@ def api_call_create_movie(title, year, genres_list, username, password):
         response = requests.post("http://api_model_container:5000/create-movie",
                                  auth=(username, password),
                                  json=payload).json()
-        st.success(response)
+        st.success('Le film a été ajouté')
     except Exception as e:
         st.error(f"Error: {e}")
         return None
     
 def run_create_movie(username, password):
-    title = st.text_input("Title")
-    year = st.number_input("Year", min_value=1900, max_value=2024)
+    title = st.text_input("Titre")
+    year = st.number_input("Année de sortie", min_value=1900, max_value=2024)
     genres_list = ["comedy", "romance"]
     selected_genres = st.selectbox("Genres", genres_list,)
     
-    create = st.button('Create movie')
+    create = st.button('Ajouter le film')
 
     if create and st.session_state.action == "Ajout d'un film":
         if title:
             if api_call_create_movie(title, year, selected_genres, username, password):
                 st.success("Movie created successfully!")
         else:
-            st.warning("Please fill title and genres")
+            st.warning("Merci de renseigner le titre et les genres")
             
 def run_auth():
     with st.sidebar:
-        st.write("### Authentication")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        role = st.text_input("Role")
+        st.write("### Authentification")
+        username = st.text_input("Nom")
+        password = st.text_input("Mot de passe", type="password")
+        role = st.text_input("Rôle")
         
-        login_button = st.button("Login")
+        login_button = st.button("Se connecter",on_click=reset)
 
     if login_button :
         if role and (username and password):
             response_admin = api_call_connect_admin(username, password,role)
             if response_admin and 'message' in response_admin:
-                st.success(response_admin['message'])
+                st.success(f"Bienvenue {username} !")
                 st.session_state.login = True
                 st.session_state.role = role
             else:
                 st.session_state.login = False
-                st.error(f"Failed to authenticate as {role}. Please check your credentials.")
+                st.error(f"Nous n'avons pas pu vous connecter en tant que {role}. Vérifiez vos habilitations.")
         else:
             st.session_state.login = False
-            st.warning("Please provide both username and password.")
+            st.warning("Renseignez votre nom et votre mot de passe")
     return username, password
+
+def reset():
+    selected_action = None
 
 def run():
     if "action" not in st.session_state:
@@ -95,6 +98,7 @@ def run():
                 actions = ["Ajout d'un film", "Entrainement du modèle"]
 
             if 'actions' in locals() or 'actions' in globals() :
+                global selected_action
                 selected_action = st.selectbox("Select Action", actions)
 
                 st.session_state.action = selected_action
