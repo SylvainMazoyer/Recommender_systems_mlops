@@ -5,6 +5,7 @@ from streamlit_extras.grid import grid
 
 sidebar_name = "Utilisateur"
 
+
 # Simule la visualisation d'un film
 def click_movie(movie_id,userid):
     requests.post("http://api_model_container:5000/user_activity", 
@@ -12,9 +13,9 @@ def click_movie(movie_id,userid):
     
 
 # Ajout d'une note à un film
-def click_note(movie_id,userid):
+def click_note(movie_id,userid,session):
     requests.post("http://api_model_container:5000/user_activity", 
-                        json={"userId":str(userid), "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"]})
+                        json={"userId":str(userid), "movieId":movie_id,"rating":st.session_state[str(movie_id)+"slider"+str(session)]})
     
 
 
@@ -36,9 +37,10 @@ def print_reco(titre, endpoint, username, userId, session):
                 st.write("Genre : ", movie["genres"])
                 st.video(movie["youtubeid"])
                 st.button("Lancer le film", key=str(movie["movieid"])+"button"+session, on_click=click_movie, args=(movie["movieid"],userId))
-                st.slider('Votre avis sur le film',1,5,3,1,key=str(movie["movieid"])+"slider"+session, on_change=click_note, args=(movie["movieid"],userId))
+                st.slider('Votre avis sur le film',1,5,3,1,key=str(movie["movieid"])+"slider"+session, on_change=click_note, args=(movie["movieid"],userId,session))
             
     st.session_state["new_reco_alea"]=False
+
 
 
 # @st.cache_data(ttl=6000)
