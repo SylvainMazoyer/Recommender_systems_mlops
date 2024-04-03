@@ -456,24 +456,6 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
         response = {"message": "Film mis a jour"}
         logging.info('%s : Accès API POST /create-movie : film "%s" mis à jour', username, new_movie["title"] )
 
-    conn = psycopg2.connect(
-        dbname='dataflix',
-        user='postgres',
-        password='dataflix',
-        host='data_container', 
-        port='5432'
-    )
-
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM films")
-    rows = cur.fetchall()
-    df_films_new = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
-    cur.close()
-    conn.close()
-    global df_films
-    with df_films_lock:
-        df_films = df_films_new
-
     return response
 
 
@@ -495,6 +477,25 @@ async def train_cbf():
     Raises:
 
     """    
+
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM films")
+    rows = cur.fetchall()
+    df_films_new = pd.DataFrame(rows, columns=[desc[0] for desc in cur.description])
+    cur.close()
+    conn.close()
+    global df_films
+    with df_films_lock:
+        df_films = df_films_new
+
 
     train_CBF_model()
     
