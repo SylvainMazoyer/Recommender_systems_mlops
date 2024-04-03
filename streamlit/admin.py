@@ -4,6 +4,7 @@ import json
 from streamlit_extras.grid import grid
 from requests.auth import HTTPBasicAuth
 import base64
+import pandas as pd
 
 sidebar_name = "Admin"
         
@@ -42,15 +43,17 @@ def api_call_create_movie(title, year, genres_list, username, password):
 def run_create_movie(username, password):
     title = st.text_input("Titre")
     year = st.number_input("Année de sortie", min_value=1900, max_value=2024)
-    genres_list = ["comedy", "romance"]
-    selected_genres = st.selectbox("Genres", genres_list,)
+    genres_list = list(pd.read_csv('assets/genres.csv').columns)
+    selected_genres = st.multiselect("Genres", genres_list)
+    selected_genres2 = '|'.join(selected_genres)
     
     create = st.button('Ajouter le film')
 
     if create and st.session_state.action == "Ajout d'un film":
         if title:
-            if api_call_create_movie(title, year, selected_genres, username, password):
-                st.success("Movie created successfully!")
+            api_call_create_movie(title, year, selected_genres2, username, password)
+            requests.get("http://api_model_container:5000/train/train_cbf").json()
+                
         else:
             st.warning("Merci de renseigner le titre et les genres")
             

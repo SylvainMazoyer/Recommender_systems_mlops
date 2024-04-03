@@ -63,7 +63,7 @@ genres_list_2 = genres_str.split(' ')
 genres_set = set(genres_list_2)
 genres_list3 = list(genres_set)
 
-with open("./data/genres.dat", 'w', newline='') as myfile:
+with open("./streamlit/assets/genres.csv", 'w', newline='') as myfile:
      wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
      wr.writerow(genres_list3)
 
