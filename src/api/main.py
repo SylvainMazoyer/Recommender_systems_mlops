@@ -55,12 +55,31 @@ wait_for_postgres(
 # L'API ne se lane que si la base postgresql est disponible
 
 api = FastAPI(
-    title="Movie recommendation API",
-    description="We will recommend the best movies for You",
-    version="1.0.1")
+    title="API de recommandation de films",
+    description="Le but est de proposer aux utilisateurs des films selon leurs goûts et préférences.",
+    version="1.0.1",
+    openapi_tags=[
+    {
+        'name': 'Home',
+        'description': "Test de fonctionnement de l'API"
+    },
+    {
+        'name': 'Utilisateurs',
+        'description': 'fonctions sans authentification destinées aux utilisateurs de la plateforme'
+    },
+    {
+        'name': 'Admin',
+        'description': 'fonctions avec authentification destinées aux administrateurs de la plateforme et aux data scientists'
+    }])
 
-@api.get("/")
+@api.get("/", tags=['Home'], name="Route test")
 def read_root():
+    """
+    Retourne un message si l'API est accessible
+
+    **Returns**:\n
+        json : {"message": "API is functional"}
+    """
     return {"message": "API is functional"}
 
 
@@ -94,22 +113,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
     """
-
-    Mettre à jour :
-
     Vérifie les informations d'identification de l'administrateur.
 
-    Args:
-        credentials (HTTPBasicCredentials):
-        Les informations d'identification HTTP de l'utilisateur.
+    **Args**:\n
+        credentials : Identification avec HTTPBasic()
 
-    Returns:
-        str: Le nom d'utilisateur de l'administrateur
-        si les informations d'identification sont valides.
+    **Returns**:\n
+        username (str) : nom de l'administrateur
+        role (str) : role de l'administrateur
 
-    Raises:
-        HTTPException: Si les informations d'identification sont incorrectes,
-        une exception HTTP 401 Unauthorized est levée.
+    **Raises**:\n
+        HTTPException 401 : Si les informations d'identification sont incorrectes
     """
 
     conn = psycopg2.connect(
@@ -155,24 +169,25 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
 
 
-@api.get("/admin/{asked_role}")
+@api.get("/admin/{asked_role}", tags=['Admin'], name="Authentification en tant qu'administrateur")
 async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)):
 
     """
 
-    Description:
-    Cette route renvoie un message de bienvenue personnalisé en utilisant le nom d'utilisateur fourni en tant que dépendance.
+    Cette route renvoie un message de bienvenue lors de l'authentification.
 
-    Args:
-        user_rights : tuple (name, role) dépendant de verify_admin
+    **Args**:\n
+        - user_rights (tuple): (name, role) dépendant de verify_admin
+        - asked_role (str) : rôle pour lequel l'administrateur souhaite se connecter
 
-    Returns:
-    - str: Un message de bienvenue personnalisé avec le nom d'utilisateur.
+    **Returns**: \n
+        json
 
-    Raises:
-    Aucune exception n'est levée explicitement, sauf si la dépendance
-    `get_secure_data` échoue pour récupérer le nom d'utilisateur. 
-    Dans ce cas, une exception FastAPI sera levée automatiquement.
+    **Example** : \n
+        Exemple de sortie : {"message": "Bonjour Dataflix, vous êtes connecté(e) en tant qu'administrateur"}
+
+    **Raises**:\n
+        HTTPException 401: Si l'administrateur demande des accès pour un rôle autre que le sien
     """
     username, role = user_rights
 
@@ -184,7 +199,7 @@ async def get_secure_data(asked_role, user_rights: tuple = Depends(verify_admin)
                         headers={"WWW-Authenticate": "Basic"},
                     )
     logging.info('%s : Accès admin autorisé', username)
-    return {"message": f"Hello {username}, you have access to secure data"}
+    return {"message": f"Bonjour {username}, vous êtes connecté(e) en tant qu'administrateur"}
 
 
 
@@ -192,28 +207,25 @@ class CreateUser(BaseModel):
     name: str
 
 
-@api.post("/create-user")
+@api.post("/create-user", tags=['Utilisateurs'], name="Création/identification du userid")
 def create_user(user_data: CreateUser):
     """
     Crée un nouvel utilisateur dans le système.
 
-    Args:
-        user_data (CreateUser): 
-        -   name (str) : Le nom de l'utilisateur à créer ou connecter
+    **Args**:\n
+        user_data (CreateUser): Instance du modèle pydantic CreateUser
 
-    Does:
-        Regarde si l'utilisateur est déjà dans la table utilisateurs
-        - si il n'existe pas, ajout de ce dernier
-        - si il existe on ne faire rien
+    **Does**:\n
+        - si l'utilisateur n'existe pas, ajout de ce dernier en base
+        - si l'utilisateur existe, renvoi de son userid
 
-    Returns:
-        dict: 
-        - Si le nom de l'utilisateur n'est pas dans la base d'utilisateurs,
-        un message indiquant que l'utilisateur a été créé avec succès, 
-        ainsi que les infos concernant l'utilisateur nouvellement créé.
-        - Si le nom de l'utilisateur est dans la base d'utilisateurs,
-        un message indiquant que l'utilisateur est déjà existant
-        ainsi que les infos concernant l'utilisateur en question 
+    **Returns**:\n
+        json:  
+            - message
+            - userId
+
+    **Examples**: \n
+        - {"message": "user created successfully", "userId": 2200}
 
     """
 
@@ -263,21 +275,20 @@ class User_data(BaseModel):
     name: str
     id:int
 
-@api.get("/predict/rand_model")
+@api.get("/predict/rand_model", tags=['Utilisateurs'],name="Sélection aléatoire de 5 films")
 async def pred_rand_model(user_data: User_data):
     """
-    Renvoie 5 films aléatoires parmis ceux présents dans la table films
+    Renvoie 5 films aléatoires parmi ceux présents dans la table films.
 
-    Args:
-        user_data (User_data):
-        - name: str
-        - id: int
+    **Args**:\n
+        user_data (User_data): Instance du modèle pydantic User_data
 
-    Returns:
-        json: 5 films aléatoires avec leur id, titre, leurs genres et leur trailer
-        au format DataFrame jsonifié
-
-    Raises:
+    **Returns**:\n
+        json : Un json contenant des informations sur 5 films aléatoires.
+            - movieId (int): Identifiant du film
+            - title (str): Titre du film
+            - genres (str): Genres du film séparés par des |
+            - youtubeId (str): URL du trailer du film
 
     """    
     results = random_recos()
@@ -285,21 +296,20 @@ async def pred_rand_model(user_data: User_data):
     results_json = results.to_json(orient="records")
     return results_json
 
-@api.get("/predict/last_movies")
-async def pred_rand_model(user_data: User_data):
+@api.get("/predict/last_movies", tags=['Utilisateurs'], name="Sélection des 5 derniers films ajoutés")
+async def pred_last_model(user_data: User_data):
     """
-    Renvoie les 5 derniers films ajoutés en base
+    Renvoie les 5 derniers films ajoutés en base.
 
-    Args:
-        user_data (User_data):
-        - name: str
-        - id: int
+    **Args**:\n
+        user_data (User_data): Instance du modèle pydantic User_data
 
-    Returns:
-        json: 5 films avec leur id, titre, leurs genres et leur trailer
-        au format DataFrame jsonifié
-
-    Raises:
+    **Returns**:\n
+        json : Un json contenant des informations sur 5 films aléatoires.
+            - movieId (int): Identifiant du film
+            - title (str): Titre du film
+            - genres (str): Genres du film séparés par des |
+            - youtubeId (str): URL du trailer du film
 
     """    
     results = last_recos()
@@ -314,32 +324,26 @@ class Watch_movie(BaseModel):
     rating: Optional[int] = 3
 
 
-@api.post("/user_activity")
+@api.post("/user_activity", tags=['Utilisateurs'], name="Avis sur les films")
 def user_activity(watched: Watch_movie):
 
     """
-    Récupère l'activité d'un utilisateur lorsque celui-ci visionne un film
-    ou lui attribue une note
+    Récupère l'activité d'un utilisateur lorsque celui-ci visionne un film ou lui attribue une note
 
-    Args:
-        watched de la classe Watch_movie(BaseModel)
-        - userId : str
-        - movieId : int
-        - rating, int optionnel fixé par défaut à 3
+    **Args**:\n
+        watched (Watch_movie) : Instance du modèle pydantic Watch_movie
 
-    Does:
-        - dans le cas où l'utilisateur visionne un film, change la table Utilisateurs
-        pour indiquer que c'est le dernier film visionné, et lui attribue une note de 3
-        par defaut dans la table notes, qu'il aie déjà été noté ou non..
+    **Does**:\n
+        - dans le cas où l'utilisateur visionne un film, change la table Utilisateurs pour indiquer que c'est le dernier film visionné, et lui attribue une note par défaut de 3
         - dans le cas d'une notation, fait de même mais avec la note personnalisée
 
-    Returns:
-        
-        - si le film n'avait pas déjà été noté : 
-        dict: "message": "Note ajoutee"
-        - sinon dict: "message": "Note MAJ"
-
-    Raises:
+    **Returns**:\n
+        json : indique si le film a été mis à jour ou ajouté
+            - message
+    
+    **Examples**:\n
+        - {"message": "Note MAJ"}
+        - {"message": "Note ajoutee"}
 
     """    
 
@@ -389,34 +393,25 @@ def user_activity(watched: Watch_movie):
 
 
 
-
 class CreateMovie(BaseModel):
     title: str
     genres : Optional[str] = ''
     youtubeId : Optional[str] = ''
 
-@api.post("/create-movie")
+@api.post("/create-movie", tags=['Admin'],name="Ajout d'un film en base")
 def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_admin)):
     """
-    Crée un nouveau film dans le système.
+    Ajoute ou met à jour un film en base.
 
-    Args:
-        movie_data (CreateMovie): Les données du film à créer.
-        -   title (str)
-        -   genres optional (str))
-        -   youtubeId (optional (str))
-        user_rights : tuple (name, role) dépendant de verify_admin  
+    **Args**:\n
+        - movie_data (CreateMovie): Instance du modèle pydantic CreateMovie
+        - user_rights (tuple): tuple (name, role) dépendant de verify_admin  
 
-    Does:
-        - ajoute un film avec son titre et ses genres dans la table films
+    **Returns**:\n
+        json : un message de confirmation
 
-    Returns:
-        dict: Un message indiquant que le film a été créé avec succès, 
-        ainsi que les détails du film nouvellement créé.
-
-    Raises:
-        HTTPException: Si l'administrateur n'a pas les autorisations appropriées, 
-        une exception HTTP 401 Unauthorized est levée.
+    **Raises**:\n
+        HTTPException 401: Si l'utilisateur n'a pas les droits suffisants
     """
 
     username, role = user_rights
@@ -459,24 +454,17 @@ def create_movie(movie_data: CreateMovie, user_rights: tuple = Depends(verify_ad
     return response
 
 
-@api.get("/train/train_cbf")
+@api.get("/train/train_cbf", tags=['Admin'], name="Entrainement du modèle")
 async def train_cbf():
     """
     Entraîne le modèle CBF, à relancer à chaque fois qu'un film est ajouté.
 
-    Args:
-        None
+    **Args**:\n
+        Aucun argument à fournir
 
-    Does:
-        Effectue la Tf-Idf de la description et calcule la matrice de similarité 
-        cosinus entre ecteurs représentant les films, puis enregistre cette matrice.
-
-    Returns:
-        None
-
-    Raises:
-
-    """    
+    **Does**:\n
+        Effectue la Tf-Idf de la description et calcule la matrice de similarité cosinus entre ecteurs représentant les films, puis enregistre cette matrice.
+    """
 
     conn = psycopg2.connect(
         dbname='dataflix',
@@ -510,29 +498,23 @@ async def train_cbf():
 
 
 
-# réécrire pour aller chercher les données dans la base et non dans les fichiers
-@api.get("/predict/predict_CBF_model")
+@api.get("/predict/predict_CBF_model", tags=['Utilisateurs'], name="Sélection de 5 films recommandés par modèle CBF")
 async def predict_CBF_model(user_data: User_data):
     """
-    Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur 
-    si celui-ci était déjà présent en base et qu'il a déjà regardé un film. 
-    La méthode employée est le filtrage par contenu.
+    Effectue une prédiction de 5 films à partir du dernier film vu par l'utilisateur grâce à un modèle de filtrage par contenu
 
-    Args:
-        user_data (CreateUser): 
-        -   name (str) : Le nom de l'utilisateur à créer ou connecter
+    **Args**:\n
+        user_data (User_data): Instance du modèle pydantic User_data
 
-    Does:
-        Regarde si l'utilisateur a déjà visionné un film au moins dans la table utilisateur
-        Si oui; fait la prédiction du modèle CBF pour le dernier film vu l'utilisateur
-        Sinon: indique que la prédiction n'est pas possible
+    **Returns**:\n
+        json : Un json contenant des informations sur 5 films recommandés par le modèle CBF.
+            - movieId (int): Identifiant du film
+            - title (str): Titre du film
+            - genres (str): Genres du film séparés par des |
+            - youtubeId (str): URL du trailer du film
 
-    Returns:
-        - si l'utilisateur a déjà visionné au moins un film:
-        json: df des 5 films les plus similaires au dernier film vu par l'utilisateur
-        dict: "Last viewed movie": "None" si l'utilisateur n'a pas encore vu de film
 
-    Raises:
+        ou json: "Last viewed movie": "None" si l'utilisateur n'a pas encore vu de film
 
     """
     
