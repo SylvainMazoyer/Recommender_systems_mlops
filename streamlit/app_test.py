@@ -3,16 +3,6 @@ import requests
 import os
 import psycopg2
 
-conn = psycopg2.connect(
-        dbname='dataflix',
-        user='postgres',
-        password='dataflix',
-        host='data_container', 
-        port='5432'
-    )
-
-
-
 
 # Test du endpoint GET /
 def test_get_test():
@@ -52,10 +42,19 @@ def test_create_user():
     response = requests.post("http://api_model_container:5000/create-user", json={"name": "new_user"})
     data = response.json()
 
+    conn = psycopg2.connect(
+        dbname='dataflix',
+        user='postgres',
+        password='dataflix',
+        host='data_container', 
+        port='5432'
+    )
+
     cur = conn.cursor()
     cur.execute("SELECT * FROM utilisateurs where name_user='new_user'")
     rows = cur.fetchone()
     cur.close()
+    conn.close()
 
     # Assert that the response indicates the user was created successfully
     assert response.status_code == 200
@@ -74,5 +73,5 @@ def test_create_existing_user():
     assert data['message'] == "user already exists"
 
 
-conn.close()
+
     
