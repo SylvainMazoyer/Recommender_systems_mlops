@@ -2,7 +2,7 @@ name: Application test
 
 on:
   push:
-    branches: [ "master", "dev"]
+    branches: [ "master", "dev","ajout_test_data"]
     pull_request: [ "master", "dev"]
 
 jobs:
