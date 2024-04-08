@@ -25,12 +25,13 @@ def api_call_entrainer_model():
             return None
 
 
-def api_call_create_movie(title, year, genres_list, username, password):
+def api_call_create_movie(title, year, youtubeid, genres_list, username, password):
+    title_vf = title + ' (' + str(year) + ')'
     try:
         payload = {
-            "title": title,
-            "year": year,
-            "genres": genres_list
+            "title": title_vf,
+            "genres": genres_list,
+            "youtubeId": youtubeid
         }
         response = requests.post("http://api_model_container:5000/create-movie",
                                  auth=(username, password),
@@ -43,6 +44,7 @@ def api_call_create_movie(title, year, genres_list, username, password):
 def run_create_movie(username, password):
     title = st.text_input("Titre")
     year = st.number_input("Année de sortie", min_value=1900, max_value=2024)
+    youtubeid = st.text_input("Lien Youtube du trailer")
     genres_list = list(pd.read_csv('assets/genres.csv').columns)
     selected_genres = st.multiselect("Genres", genres_list)
     selected_genres2 = '|'.join(selected_genres)
@@ -51,7 +53,7 @@ def run_create_movie(username, password):
 
     if create and st.session_state.action == "Ajout d'un film":
         if title:
-            api_call_create_movie(title, year, selected_genres2, username, password)
+            api_call_create_movie(title, year, youtubeid, selected_genres2, username, password)
             requests.get("http://api_model_container:5000/train/train_cbf").json()
                 
         else:
