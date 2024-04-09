@@ -126,3 +126,5 @@ Si des modifications sont apportées sur la structure de la base de données (aj
 
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+The database is avalaible at this address : https://grouplens.org/datasets/movielens/20m/
