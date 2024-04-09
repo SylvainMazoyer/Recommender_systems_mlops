@@ -44,7 +44,7 @@ def api_call_create_movie(title, year, youtubeid, genres_list, username, passwor
 def run_create_movie(username, password):
     title = st.text_input("Titre")
     year = st.number_input("Année de sortie", min_value=1900, max_value=2024)
-    youtubeid = st.text_input("Lien Youtube du trailer")
+    youtubeid = st.text_input("Trailer")
     genres_list = list(pd.read_csv('assets/genres.csv').columns)
     selected_genres = st.multiselect("Genres", genres_list)
     selected_genres2 = '|'.join(selected_genres)
