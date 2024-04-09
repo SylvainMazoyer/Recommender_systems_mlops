@@ -1,0 +1,5 @@
+admin_id,admin_name,admin_password,admin_role
+1,Dataflix,$2b$12$63F7IpKFNbuWx1vi08p/Ie9RDuqJsQZ.BOyc3HguQkgzZsBhY50U.,Plateforme
+2,Sylvain,$2b$12$7nkns8Z8lQRQaaTVfpqXROSf7w3x32WL3TwWsPlm7zaJKQSDnWGV6,Data
+3,Yousra,$2b$12$9sMRng2AkbBOfDfeV0hcwe3tl.5Qc8UNUQtu6RbjImi0Qj8YfrPQS,Data
+4,Nolwenn,$2b$12$SU3tZD.1hiB.CP3Y.3d23eDu0Ch1EgCt.4CmfSiLW7UGeNjmWnmOe,Data
